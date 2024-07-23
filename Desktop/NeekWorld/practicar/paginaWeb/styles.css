@@ -1,0 +1,54 @@
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+.navbar__brand {
+    font-weight: bold;
+}
+
+.projects__title,
+.contact__title {
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+.projects__grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.projects__item {
+    margin-bottom: 30px;
+}
+
+.projects__card {
+    border: none;
+}
+
+.projects__img {
+    border-radius: 5px;
+}
+
+.projects__body {
+    text-align: center;
+}
+
+.contact__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.contact__details, .contact__social {
+    margin-bottom: 20px;
+}
+
+.contact__subtitle {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.footer {
+    background-color: #f8f9fa;
+}

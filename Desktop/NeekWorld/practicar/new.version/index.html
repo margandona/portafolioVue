@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostPetz</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container" id="game-container">
+        <h1 class="text-center my-4">GhostPetz: El Reino de las Almas</h1>
+        <div class="row" id="pet-selection">
+            <div class="col-12 text-center mb-3">
+                <h2>Elige tus GhostPetz</h2>
+            </div>
+            <div class="col-12 text-center">
+                <button class="btn btn-primary mx-2" onclick="selectPet('fantasma')">Fantasma</button>
+                <button class="btn btn-primary mx-2" onclick="selectPet('espectro')">Espectro</button>
+                <button class="btn btn-primary mx-2" onclick="selectPet('wraith')">Wraith</button>
+            </div>
+        </div>
+        <div class="row" id="pet-status" style="display:none;">
+            <div class="col-12 text-center mb-3">
+                <h2>Estado de tu GhostPet</h2>
+            </div>
+            <div class="col-12 text-center mb-3">
+                <p id="pet-type"></p>
+                <p id="pet-level"></p>
+                <p id="pet-xp"></p>
+                <p id="pet-health"></p>
+                <p id="pet-energy"></p>
+                <p id="pet-happiness"></p>
+                <p id="pet-age"></p>
+                <p id="pet-illness"></p>
+                <p id="pet-emotions"></p>
+            </div>
+            <div class="col-12 text-center mb-3">
+                <h3>Actividades</h3>
+                <button class="btn btn-secondary mx-2" onclick="performActivity('alimentar')">Alimentar</button>
+                <button class="btn btn-secondary mx-2" onclick="performActivity('estudiar')">Estudiar</button>
+                <button class="btn btn-secondary mx-2" onclick="performActivity('trabajar')">Trabajar</button>
+                <button class="btn btn-secondary mx-2" onclick="performActivity('ejercicio')">Ejercicio</button>
+                <button class="btn btn-secondary mx-2" onclick="performActivity('meditar')">Meditar</button>
+                <button class="btn btn-secondary mx-2" onclick="performActivity('socializar')">Socializar</button>
+                <button class="btn btn-secondary mx-2" onclick="performActivity('entrenamiento')">Entrenamiento</button>
+            </div>
+        </div>
+        <div class="row" id="missions" style="display:none;">
+            <div class="col-12 text-center mb-3">
+                <h2>Misiones</h2>
+            </div>
+            <div class="col-12 text-center">
+                <button class="btn btn-warning mx-2" onclick="startMission('vencerCriaturas')">Vencer Criaturas Malignas</button>
+                <button class="btn btn-warning mx-2" onclick="startMission('resolverPuzles')">Resolver Puzles</button>
+                <button class="btn btn-warning mx-2" onclick="startMission('desafiosConocimiento')">Desafíos de Conocimiento</button>
+                <button class="btn btn-warning mx-2" onclick="startMission('busquedaTesoros')">Búsqueda de Tesoros</button>
+            </div>
+        </div>
+        <div class="row" id="inventory" style="display:none;">
+            <div class="col-12 text-center mb-3">
+                <h2>Inventario</h2>
+                <p id="inventory-items">No tienes objetos.</p>
+            </div>
+        </div>
+        <div class="row" id="explore" style="display:none;">
+            <div class="col-12 text-center mb-3">
+                <h2>Explorar</h2>
+            </div>
+            <div class="col-12 text-center">
+                <button class="btn btn-info mx-2" onclick="exploreArea('bosque')">Bosque Fantasma</button>
+                <button class="btn btn-info mx-2" onclick="exploreArea('lago')">Lago Espectral</button>
+                <button class="btn btn-info mx-2" onclick="exploreArea('ciudad')">Ciudad de Almas</button>
+            </div>
+        </div>
+        <div class="row" id="switch-pet" style="display:none;">
+            <div class="col-12 text-center mb-3">
+                <h2>Cambiar Mascota</h2>
+            </div>
+            <div class="col-12 text-center" id="pet-buttons">
+                <!-- Botones para cambiar entre mascotas aparecerán aquí -->
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

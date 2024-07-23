@@ -1,0 +1,27 @@
+/* Import Bootstrap */
+@import '~bootstrap/dist/css/bootstrap.min.css';
+@import '~@fortawesome/fontawesome-free/css/all.min.css';
+
+/* BEM Styles */
+.app__header {
+  background-color: #f8f9fa;
+  padding: 1rem;
+}
+
+.app__content {
+  padding: 2rem;
+}
+
+.navbar__brand {
+  font-size: 1.5rem;
+}
+
+.board-list__item {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.task-list__item {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
