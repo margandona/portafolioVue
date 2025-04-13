@@ -1,0 +1,102 @@
+<template>
+  <section class="education-section" id="education">
+    <div class="container">
+      <h2 class="section-title">Educación</h2>
+      <p>Reflexionando sobre la importancia de la educación en el desarrollo personal y profesional.</p>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <h3>Una de mis más grandes pasiones se asocian con la educación</h3>
+          <p>"Durante mi infancia, crecí rodeado de docentes, lo que me llevó a elegir la enseñanza como mi primera carrera. 
+          Estar en un ambiente educativo desde pequeño influyó profundamente en mis decisiones y aspiraciones profesionales.<br><br>
+          Sin embargo, una vez inmerso en el campo, me di cuenta de que muchos métodos eran obsoletos y necesitaban una 
+          renovación urgente. La enseñanza tradicional no estaba cumpliendo con las demandas y necesidades de los 
+          estudiantes modernos, lo que me llevó a buscar soluciones innovadoras.<br><br>
+          Actualmente, me dedico a automatizar y actualizar esos enfoques, buscando mejorar la educación a través de la 
+          innovación tecnológica. Mi objetivo es transformar la manera en que enseñamos y aprendemos, adaptándola a las 
+          necesidades del siglo XXI."</p>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <img src="@/assets/img/mistralymaturana.webp" class="card-img-top" alt="Proyecto 1">
+            <div class="card-body">
+              <h5 class="card-title">La educación en linea es el nuevo paradigma</h5>
+              <p class="card-text">Chilenos de renombre como Gabriela Mistral, quien defendía la educación con amor, 
+              y Humberto Maturana, cuyas teorías se basan en las neurociencias, han tenido razón en sus planteamientos. 
+              Sin embargo, estos visionarios no podían prever cómo la enseñanza se transformaría en nuestros tiempos, 
+              adaptándose a nuevas metodologías y tecnologías.</p>
+              <button @click="showReflection('reflexion1')" class="btn btn-primary">Leer más</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-4">
+          <div class="card">
+            <img src="@/assets/img/aprenderjugar.webp" class="card-img-top" alt="Proyecto 1">
+            <div class="card-body">
+              <h5 class="card-title">Aprender jugando</h5>
+              <p class="card-text">Convertir el aprendizaje en una experiencia divertida y relevante promueve una asimilación más efectiva de los conocimientos, 
+              mejorando la comprensión y el interés de los estudiantes en el proceso educativo.</p>
+              <button @click="showReflection('reflexion2')" class="btn btn-primary">Leer más</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <img src="@/assets/img/aprendercrear.webp" class="card-img-top" alt="Proyecto 2">
+            <div class="card-body">
+              <h5 class="card-title">Aprender Creando</h5>
+              <p class="card-text">Aprender mediante la práctica y la experiencia facilita una asimilación más efectiva y duradera de los conocimientos, 
+              asegurando que los estudiantes retengan y comprendan mejor lo que han aprendido.</p>
+              <button @click="showReflection('reflexion3')" class="btn btn-primary">Leer más</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <img src="@/assets/img/aprenderaprender.webp" class="card-img-top" alt="Proyecto 3">
+            <div class="card-body">
+              <h5 class="card-title">Aprendiendo a aprender</h5>
+              <p class="card-text">Desarrollar la habilidad de aprender a aprender en un entorno tecnológico capacita a las personas para adaptarse y evolucionar continuamente, 
+              asimilando nuevos conocimientos y habilidades de manera efectiva y autónoma.</p>
+              <button @click="showReflection('reflexion4')" class="btn btn-primary">Leer más</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 text-center">
+        <h1>Adaptar las metodologías educativas tanto a los tiempos como a la tecnología es la llave al futuro.</h1>
+        <h2>Tomando lo mas importante, como lo que dice Gabriela Mistral o Humberto Maturana.</h2>
+        <p>"Amar educa", afirmaba Humberto Maturana. Cuando creamos un espacio que acoge, 
+        escucha y permite la presencia del otro, los niños se transforman en personas reflexivas, 
+        autónomas y responsables. El amor y la ternura son esenciales para que la educación florezca.</p>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script>
+export default {
+  name: 'EducationSection',
+  methods: {
+    showReflection(reflectionKey) {
+      this.$store.dispatch('modals/showEducationReflection', reflectionKey);
+    }
+  }
+};
+</script>
+
+<style scoped>
+.education-section {
+  padding: 50px 0;
+  background: linear-gradient(135deg, #5b86e5, #36d1dc);
+  color: white;
+}
+.section-title {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+</style>
