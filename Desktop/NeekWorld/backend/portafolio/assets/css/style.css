@@ -1,0 +1,458 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.5s, color 0.5s;
+}
+
+.header {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #71b7e6, #9b59b6);
+    color: white;
+    text-align: center;
+    transition: background-color 0.5s, color 0.5s;
+}
+
+.header__logo {
+    font-size: 5rem;
+    font-family: 'Lobster', cursive;
+}
+
+.header__text {
+    font-size: 1.5rem;
+    opacity: 0;
+    animation: typing 3s steps(30, end) forwards;
+    cursor: pointer;
+}
+
+@keyframes typing {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+.nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: white;
+    z-index: 1000;
+    transition: background-color 0.5s, color 0.5s;
+}
+
+.nav__item {
+    margin: 0 15px;
+}
+
+.tooltip-inner {
+    background-color: #333;
+    color: #fff;
+}
+
+.presentation {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 50px;
+    background: linear-gradient(135deg, #5b86e5, #36d1dc);
+    color: white;
+    transition: background-color 0.5s, color 0.5s;
+}
+
+.presentation__text,
+.presentation__image-container {
+    flex: 1;
+    margin: 10px;
+    min-width: 300px;
+}
+
+.presentation__text h1 {
+    font-size: 3rem;
+}
+
+.presentation__text p {
+    font-size: 1.2rem;
+}
+
+.presentation__links {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.presentation__links a {
+    color: white;
+    font-size: 1.5rem;
+    transition: color 0.3s;
+}
+
+.presentation__links a:hover {
+    color: #ddd;
+}
+
+.presentation__image {
+    max-width: 200px;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto;
+}
+
+.scroll-up {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(51, 51, 51, 0.8);
+    color: white;
+    padding: 15px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s, opacity 0.3s;
+    opacity: 0.5;
+    z-index: 1000;
+    font-size: 24px; /* Aumentar tamaño */
+}
+
+.scroll-up:hover {
+    background: rgba(51, 51, 51, 1);
+    transform: translateX(-50%) scale(1.1);
+    opacity: 1;
+}
+
+.scroll-up i {
+    transition: transform 0.3s;
+}
+
+.scroll-up:hover i {
+    transform: rotate(360deg);
+}
+
+.colorblind-mode {
+    filter: grayscale(100%);
+}
+
+@media (max-width: 768px) {
+    .presentation {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .presentation__text h1 {
+        font-size: 2rem;
+    }
+
+    .presentation__text p {
+        font-size: 1rem;
+    }
+
+    .presentation__links a {
+        font-size: 1.2rem;
+    }
+}
+
+.dynamic-section {
+    padding: 50px;
+    background: #f8f9fa;
+    margin: 20px 0;
+}
+
+.about-section {
+    padding: 50px 0;
+    background: linear-gradient(135deg, #5b86e5, #36d1dc);
+    color: white;
+}
+
+.about-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.about-section p {
+    font-size: 1.2rem;
+}
+
+.about-section a {
+    color: #ffd700;
+    text-decoration: none;
+}
+
+.about-section a:hover {
+    text-decoration: underline;
+}
+
+.about-section img {
+    border-radius: 10px;
+}
+
+.about-section h3 {
+    font-size: 1.5rem;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .about-section .col-lg-8,
+    .about-section .col-lg-4 {
+        text-align: center;
+    }
+
+    .about-section h2 {
+        font-size: 2rem;
+    }
+
+    .about-section p {
+        font-size: 1rem;
+    }
+
+    .about-section .row.mt-5 {
+        display: none;
+    }
+}
+
+.section {
+    padding: 50px 0;
+    background: linear-gradient(135deg, #5b86e5, #36d1dc);
+    color: white;
+}
+
+.section-title {
+    font-size: 3rem;
+    margin-bottom: 30px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    width: 60px;
+    height: 4px;
+    background: #fff;
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.card {
+    background: #fff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    margin-bottom: 30px;
+    height: 100%; /* Para igualar la altura de todas las tarjetas */
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.card-img-top {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    height: 200px; /* Ajustar altura */
+    object-fit: cover; /* Ajustar imagen para que cubra el área */
+}
+
+.card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.card-text {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    color: #000;
+}
+
+.btn-primary {
+    background: #36d1dc;
+    border: none;
+    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.btn-primary i {
+    margin-right: 5px;
+}
+
+.btn-primary:hover {
+    background: #5b86e5;
+}
+
+@media (max-width: 768px) {
+    .section .card {
+        margin-bottom: 30px;
+    }
+}
+
+.playground-section {
+    padding: 50px 0;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+}
+
+.playground-section h3,
+.playground-section h4 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.playground-section p {
+    font-size: 1.2rem;
+}
+
+.carousel-item .card {
+    background: #fff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-item .card-body {
+    padding: 20px;
+}
+
+.carousel-item .card-title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.carousel-item .card-text {
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+.carousel-item .btn-primary {
+    background: #36d1dc;
+    border: none;
+}
+
+.carousel-item .btn-primary:hover {
+    background: #5b86e5;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: #000;
+    border-radius: 50%;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Accessibility Modes */
+.descanso-visual {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Iconos de RRSS en modo descanso visual */
+.descanso-visual .presentation__links a i {
+    color: #000;
+}
+
+.daltonismo {
+    filter: grayscale(100%);
+}
+
+.normal {
+    color: #000;
+}
+
+/* Night Mode */
+.modo-nocturno {
+    background-color: #2e2e2e;
+    color: #cccccc;
+}
+
+/* Aplicar modo nocturno a cada sección */
+.header.modo-nocturno {
+    background: linear-gradient(135deg, #333, #444);
+    color: #cccccc;
+}
+
+.presentation.modo-nocturno {
+    background: linear-gradient(135deg, #333, #444);
+    color: #cccccc;
+}
+
+.about-section.modo-nocturno {
+    background: linear-gradient(135deg, #333, #444);
+    color: #cccccc;
+}
+
+.playground-section.modo-nocturno {
+    background: linear-gradient(135deg, #333, #444);
+    color: #cccccc;
+}
+
+.work-section.modo-nocturno {
+    background: linear-gradient(135deg, #333, #444);
+    color: #cccccc;
+}
+
+.education-section.modo-nocturno {
+    background: linear-gradient(135deg, #333, #444);
+    color: #cccccc;
+}
+
+/* Aplicar descanso visual a cada sección */
+.header.descanso-visual {
+    background: linear-gradient(135deg, #f7f7f7, #e2e2e2);
+    color: #333;
+}
+
+.presentation.descanso-visual {
+    background: linear-gradient(135deg, #f7f7f7, #e2e2e2);
+    color: #333;
+}
+
+.about-section.descanso-visual {
+    background: linear-gradient(135deg, #f7f7f7, #e2e2e2);
+    color: #333;
+}
+
+.playground-section.descanso-visual {
+    background: linear-gradient(135deg, #f7f7f7, #e2e2e2);
+    color: #333;
+}
+
+.work-section.descanso-visual {
+    background: linear-gradient(135deg, #f7f7f7, #e2e2e2);
+    color: #333;
+}
+
+.education-section.descanso-visual {
+    background: linear-gradient(135deg, #f7f7f7, #e2e2e2);
+    color: #333;
+}
+
+/* Links en modo normal */
+.normal .presentation__link {
+    color: white;
+}
+
+/* Button Styles */
+.btn {
+    margin: 5px 0;
+}

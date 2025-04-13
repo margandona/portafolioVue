@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaKuaZ | UX Design</title>
+    
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Lobster&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="assets/img/icon/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="assets/img/icon/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="assets/img/icon/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="assets/img/icon/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="assets/img/icon/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="assets/img/icon/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="assets/img/icon/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="assets/img/icon/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/icon/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="assets/img/icon/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/icon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="assets/img/icon/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/icon/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="assets/img/icon/ms-icon-144x144.png">
+<meta name="theme-color" content="#5b86e5">
+
+    
+</head>
+<body>
+    <!--SECCION NAVBAR-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light nav">
+        <img src="assets/img/logo.png" alt="logotipo" style="width: 45px;">
+        <a class="navbar-brand" href="#">MaKuaZ</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item nav__item">
+                    <a class="nav-link" href="#home" data-target="home">Inicio</a>
+                </li>
+                <li class="nav-item nav__item">
+                    <a class="nav-link" href="#work" data-target="work">Accesibilidad</a>
+                </li>
+                <li class="nav-item nav__item">
+                    <a class="nav-link" href="#playground" data-target="playground">Diversión</a>
+                </li>
+                <li class="nav-item nav__item">
+                    <a class="nav-link" href="#educacion" data-target="educacion">Educación</a>
+                </li>
+                <li class="nav-item nav__item">
+                    <a class="nav-link" href="#comunicaciones" data-target="comunicaciones">Comunicaciones</a>
+                </li>
+                <li class="nav-item nav__item">
+                    <a class="nav-link" href="#about" data-target="about">Acerca de</a>
+                </li>
+                <li class="nav-item nav__item">
+                    <a class="nav-link" href="#rrss" >RRSS</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!--SECCION HOME-->
+    <header class="header" id="home">
+        <img src="assets/img/logo.png" alt="">
+        <div class="header__logo">MaKuaZ</div>
+        <p class="header__text mt-3" id="intro-text">Hola, Que bueno que estas por acá...
+            <br><b>¿Te gusta el Web Design?</b>
+            <br>Si tienes problemas visuales haz
+            <br> clic sobre este texto.
+        </p>
+    </header>
+
+    <!-- CONTENEDOR PARA NUEVAS SECCIONES -->
+    <div id="dynamic-sections"></div>
+
+    <!--SECCION PRESENTATION-->
+    <section class="presentation" id="presentation">
+        <div class="presentation__text">
+            <h1>Soy Marcos Argandoña</h1>
+            <p>Conocido como Makuaz, un creativo, reflexivo y emprendedor desarrollador web y 
+                diseñador UX. Con una combinación única de habilidades técnicas y humanistas, 
+                me especializo en crear experiencias de usuario memorables y soluciones 
+                front-end innovadoras.</p>
+            <p>
+                <a href="#work" data-target="work" class="presentation__link" >Mira Mi Trabajo</a> |
+                <a href="assets/documents/curriculum.pdf" class="presentation__link" target="_blank">Descarga mi Currículum</a> |
+                <a href="#playground" data-target="playground" class="presentation__link">¿Quieres Jugar?</a> |
+                <a href="#educacion" data-target="educacion" class="presentation__link">Contribución en Educación</a>
+            </p>
+        </div>
+
+        
+        <div class="presentation__image-container" id="rrss">
+            <img src="assets/img/img2.jpg" alt="Marcos Argandoña" class="presentation__image">
+            <div class="presentation__links">
+                <a href="https://www.youtube.com/channel/UCCh9xE8c6_olI22wB2Y8mWA" data-toggle="tooltip" title="Youtube"><i class="fab fa-youtube"></i></a>
+                <a href="https://www.tiktok.com/@makuaz.dev" data-toggle="tooltip" title="Tik-Tok"><i class="fab fa-tiktok"></i></a>
+                <a href="linkedin.com/in/marcos-argandoña-ugarte-09731a37/" data-toggle="tooltip" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://discord.gg/Pj6PHM7Xte" data-toggle="tooltip" title="Discord"><i class="fab fa-discord"></i></a>
+                <a href="mailto:makuaz@makuaz.cl" data-toggle="tooltip" title="Email"><i class="fas fa-envelope"></i></a>
+                <a href="https://github.com/margandona" data-toggle="tooltip" title="GitHub"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- SCROLL PARA VOLVER AL INICIO -->
+    <div class="scroll-up" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="educationModal" tabindex="-1" aria-labelledby="educationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="educationModalLabel">Reflexión</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modal-content">
+                    <!-- Contenido de la reflexión irá aquí -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="assets/src/script.js"></script>
+    <script>
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>
