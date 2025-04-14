@@ -41,16 +41,29 @@ export default {
   },
   watch: {
     reflectionKey(newValue) {
+      console.log('Reflection key changed to:', newValue);
       if (newValue) {
         this.showReflection(newValue);
       }
     }
   },
   methods: {
+    // Public method that can be called directly by ref
+    showDirectReflection(reflectionKey) {
+      console.log('Direct reflection method called with:', reflectionKey);
+      this.currentReflection = this.reflections[reflectionKey] || 'Reflexión no disponible';
+      this.showModal();
+    },
+    
+    // Internal method used by the watcher
     showReflection(reflectionKey) {
       console.log('EducationModal - showReflection called with:', reflectionKey);
       this.currentReflection = this.reflections[reflectionKey] || 'Reflexión no disponible';
-      // Direct jQuery call to ensure modal shows
+      this.showModal();
+    },
+    
+    // Centralized modal show logic
+    showModal() {
       if (window.jQuery) {
         console.log('EducationModal - jQuery found, showing modal');
         try {
@@ -61,6 +74,21 @@ export default {
         }
       } else {
         console.error('EducationModal - jQuery not found, cannot show modal');
+        // Fallback to vanilla JS
+        try {
+          const modal = document.getElementById('educationModal');
+          if (modal) {
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            document.body.classList.add('modal-open');
+            
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+          }
+        } catch (error) {
+          console.error('Vanilla JS fallback failed:', error);
+        }
       }
     }
   },

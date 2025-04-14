@@ -7,6 +7,7 @@
       <AccessibilitySection v-if="isActive('accessibility')" id="accessibility" />
       <PlaygroundSection v-if="isActive('playground')" id="playground" />
       <EducationSection v-if="isActive('education')" id="education" />
+      <GithubSection v-if="isActive('github')" id="github" />
       <CommunicationsSection v-if="isActive('communications')" id="communications" />
       <AboutSection v-if="isActive('about')" id="about" />
     </div>
@@ -28,6 +29,7 @@ import AccessibilitySection from '@/components/sections/AccessibilitySection.vue
 import PlaygroundSection from '@/components/sections/PlaygroundSection.vue'
 import EducationSection from '@/components/sections/EducationSection.vue'
 import CommunicationsSection from '@/components/sections/CommunicationsSection.vue'
+import GithubSection from '@/components/sections/GithubSection.vue'
 import ScrollToTop from '@/components/ScrollToTop.vue'
 import EducationModal from '@/components/modals/EducationModal.vue'
 import FigmaPrototypeModal from '@/components/modals/FigmaPrototypeModal.vue'
@@ -43,6 +45,7 @@ export default {
     PlaygroundSection,
     EducationSection,
     CommunicationsSection,
+    GithubSection,
     ScrollToTop,
     EducationModal,
     FigmaPrototypeModal,

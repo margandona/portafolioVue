@@ -71,6 +71,7 @@ export default {
         { text: 'Diversión', id: 'playground', route: '/playground', icon: 'fas fa-gamepad' },
         { text: 'Educación', id: 'education', route: '/education', icon: 'fas fa-graduation-cap' },
         { text: 'Radio', id: 'radio', route: null, icon: 'fas fa-broadcast-tower' },
+        { text: 'GitHub', id: 'github', route: '/github', icon: 'fab fa-github' },
         { text: 'Acerca de', id: 'about', route: '/about', icon: 'fas fa-user' },
         { text: 'RRSS', id: 'rrss', route: '/#rrss', icon: 'fas fa-share-alt' }
       ]
