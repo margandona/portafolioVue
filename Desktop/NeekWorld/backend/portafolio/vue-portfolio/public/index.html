@@ -4,8 +4,17 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <link rel="icon" href="logo.png" type="image/png">
     <title><%= htmlWebpackPlugin.options.title %></title>
+    
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Bootstrap CSS from CDN as fallback -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Lobster&display=swap" rel="stylesheet">
   </head>
   <body>
     <noscript>
@@ -13,5 +22,20 @@
     </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->
+    
+    <!-- jQuery and Bootstrap JS CDN fallbacks -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Initialize Bootstrap components -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+          console.log('Bootstrap initialized from CDN');
+          // Initialize all modals
+          window.jQuery('.modal').modal({show: false});
+        }
+      });
+    </script>
   </body>
 </html>

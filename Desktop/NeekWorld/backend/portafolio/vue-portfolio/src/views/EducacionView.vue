@@ -3,6 +3,7 @@
     <NavbarComponent />
     <EducationSection />
     <EducationModal />
+    <FigmaPrototypeModal />
     <ScrollToTop />
   </div>
 </template>
@@ -11,6 +12,7 @@
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import EducationSection from '@/components/sections/EducationSection.vue'
 import EducationModal from '@/components/modals/EducationModal.vue'
+import FigmaPrototypeModal from '@/components/modals/FigmaPrototypeModal.vue'
 import ScrollToTop from '@/components/ScrollToTop.vue'
 
 export default {
@@ -19,6 +21,7 @@ export default {
     NavbarComponent,
     EducationSection,
     EducationModal,
+    FigmaPrototypeModal,
     ScrollToTop
   }
 }

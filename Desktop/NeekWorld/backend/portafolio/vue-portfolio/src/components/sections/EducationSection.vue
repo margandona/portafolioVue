@@ -25,7 +25,9 @@
               y Humberto Maturana, cuyas teorías se basan en las neurociencias, han tenido razón en sus planteamientos. 
               Sin embargo, estos visionarios no podían prever cómo la enseñanza se transformaría en nuestros tiempos, 
               adaptándose a nuevas metodologías y tecnologías.</p>
-              <button @click="showReflection('reflexion1')" class="btn btn-primary">Leer más</button>
+              <button @click="openFigmaPrototype" class="btn btn-primary">
+                <i class="fas fa-laptop-code"></i> Ver Prototipo
+              </button>
             </div>
           </div>
         </div>
@@ -75,15 +77,116 @@
         autónomas y responsables. El amor y la ternura son esenciales para que la educación florezca.</p>
       </div>
     </div>
+    
+    <!-- Figma prototype modal -->
+    <div class="modal fade" id="figmaPrototypeModal" tabindex="-1" aria-labelledby="figmaPrototypeModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="figmaPrototypeModalLabel">Prototipo Educativo</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div v-if="isLoading" class="loading-container">
+              <div class="spinner"></div>
+              <p class="loading-text">Cargando prototipo de Figma...</p>
+            </div>
+            <iframe 
+              v-show="!isLoading"
+              class="figma-embed"
+              src="https://www.figma.com/proto/obrv3qczH3QcqHAvODPtdW/Untitled?node-id=1-2018" 
+              allowfullscreen
+              @load="hideLoader"
+            ></iframe>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script>
 export default {
   name: 'EducationSection',
+  data() {
+    return {
+      isLoading: true
+    };
+  },
   methods: {
     showReflection(reflectionKey) {
+      console.log('Attempting to show reflection:', reflectionKey);
       this.$store.dispatch('modals/showEducationReflection', reflectionKey);
+      
+      // Add debugging for jQuery
+      if (window.jQuery) {
+        console.log('jQuery is available, attempting to show modal');
+        window.jQuery('#educationModal').modal('show');
+      } else {
+        console.error('jQuery is NOT available - modal cannot be shown');
+      }
+    },
+    openFigmaPrototype() {
+      console.log('Attempting to open Figma prototype modal');
+      this.isLoading = true;
+      
+      // Try multiple approaches to show the modal
+      if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+        // Use Bootstrap's modal function if available
+        console.log('Using Bootstrap modal function');
+        window.jQuery('#figmaPrototypeModal').modal('show');
+      } else if (window.jQuery) {
+        // Fallback: Try to use jQuery to show the modal manually
+        console.log('Fallback: Using jQuery to show modal manually');
+        window.jQuery('#figmaPrototypeModal').addClass('show');
+        window.jQuery('#figmaPrototypeModal').css('display', 'block');
+        window.jQuery('body').addClass('modal-open');
+        window.jQuery('body').append('<div class="modal-backdrop fade show"></div>');
+      } else {
+        // Fallback: Use vanilla JavaScript
+        console.log('Fallback: Using vanilla JavaScript to show modal');
+        const modal = document.getElementById('figmaPrototypeModal');
+        if (modal) {
+          modal.classList.add('show');
+          modal.style.display = 'block';
+          document.body.classList.add('modal-open');
+          
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+        } else {
+          console.error('Modal element not found');
+          alert('Could not open the Figma prototype. Please try again later.');
+        }
+      }
+    },
+    hideLoader() {
+      // Add a small delay to ensure the iframe is fully rendered
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 500);
+    }
+  },
+  mounted() {
+    console.log('EducationSection mounted');
+    // Initialize modals with debugging
+    if (window.jQuery) {
+      console.log('jQuery is available in mounted - initializing Figma modal');
+      try {
+        window.jQuery('#figmaPrototypeModal').modal({
+          show: false
+        });
+        console.log('Figma modal initialized successfully');
+      } catch (error) {
+        console.error('Error initializing Figma modal:', error);
+      }
+    } else {
+      console.error('jQuery is NOT available in mounted hook');
     }
   }
 };
@@ -98,5 +201,45 @@ export default {
 .section-title {
   font-size: 2.5rem;
   margin-bottom: 20px;
+}
+
+/* Modal styles */
+.figma-embed {
+  width: 100%;
+  height: 600px;
+  border: none;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(54, 209, 220, 0.25);
+  border-top: 5px solid #36d1dc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 15px;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Bootstrap modal override */
+.modal-xl {
+  max-width: 90%;
 }
 </style>

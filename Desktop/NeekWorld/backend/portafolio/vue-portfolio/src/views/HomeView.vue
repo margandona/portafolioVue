@@ -15,6 +15,8 @@
     <ProfilePresentation />
     <ScrollToTop />
     <EducationModal ref="educationModal" />
+    <FigmaPrototypeModal ref="figmaModal" />
+    <RadioModal />
   </div>
 </template>
 
@@ -28,6 +30,8 @@ import EducationSection from '@/components/sections/EducationSection.vue'
 import CommunicationsSection from '@/components/sections/CommunicationsSection.vue'
 import ScrollToTop from '@/components/ScrollToTop.vue'
 import EducationModal from '@/components/modals/EducationModal.vue'
+import FigmaPrototypeModal from '@/components/modals/FigmaPrototypeModal.vue'
+import RadioModal from '@/components/modals/RadioModal.vue'
 
 export default {
   name: 'HomeView',
@@ -40,7 +44,9 @@ export default {
     EducationSection,
     CommunicationsSection,
     ScrollToTop,
-    EducationModal
+    EducationModal,
+    FigmaPrototypeModal,
+    RadioModal
   },
   computed: {
     activeSection() {
@@ -57,8 +63,6 @@ export default {
         window.$('[data-toggle="tooltip"]').tooltip();
       }
     });
-    
-    // Remove the problematic event listener
   }
 }
 </script>
