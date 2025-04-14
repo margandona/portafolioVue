@@ -60,6 +60,47 @@ body {
   padding-top: 56px; /* Espacio para el navbar fijo */
 }
 
+/* Estilos globales para accesibilidad con mayor especificidad - Daltonismo mejorado */
+html body .daltonismo {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+html body .daltonismo * {
+  filter: grayscale(100%) !important;
+}
+
+/* Corrección para eliminar el espacio en blanco sobre el navbar */
+html body .daltonismo .nav {
+  position: fixed !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Corrección para el modal de radio en modo daltonismo - Arreglado */
+html body .daltonismo .radio-modal {
+  filter: grayscale(100%) !important;
+  position: fixed !important;
+  z-index: 1050 !important; /* Aseguramos que esté por encima */
+}
+
+html body .daltonismo .radio-player {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  z-index: 1050 !important;
+}
+
+html body .daltonismo .radio-minimized {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 1050 !important;
+}
+
 /* Estilos globales para accesibilidad con mayor especificidad */
 html body .daltonismo,
 html body div.daltonismo,
