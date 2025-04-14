@@ -271,6 +271,45 @@ export default {
   font-family: 'OpenDyslexic', sans-serif !important;
 }
 
+/* Estilos específicos para el modo daltonismo */
+.radio-modal.daltonismo {
+  filter: none !important; /* Evitamos aplicar doble grayscale */
+  display: block !important; /* Aseguramos que se muestre como bloque */
+  height: 100% !important; /* Altura completa */
+  width: 100% !important; /* Ancho completo */
+  top: 0 !important; /* Posición desde arriba */
+  left: 0 !important; /* Posición desde la izquierda */
+}
+
+.radio-modal.daltonismo .radio-player {
+  display: block !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  z-index: 1051 !important; /* Aseguramos que esté por encima */
+  background: linear-gradient(135deg, #444, #666) !important;
+  color: white !important;
+}
+
+.radio-modal.daltonismo .radio-minimized {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 1051 !important;
+  background: linear-gradient(135deg, #444, #666) !important;
+  color: white !important;
+}
+
+/* Aseguramos que las animaciones no afecten al posicionamiento en modo daltonismo */
+.radio-modal.daltonismo .radio-player.playing,
+.radio-modal.daltonismo .radio-minimized.playing {
+  animation: none !important;
+  /* Mantener posicionamiento aunque esté reproduciendo */
+  transform: translate(-50%, -50%) !important; 
+}
+
 .radio-header {
   display: flex;
   justify-content: space-between;
