@@ -1,5 +1,5 @@
 <template>
-  <header class="header" id="home">
+  <header class="header" id="home" :class="accessibilityClasses">
     <img src="@/assets/img/logo1.png" alt="Logo" ref="logoImage" :class="logoEffect" />
     <div class="header__logo" ref="logoText" :class="textEffect">MaKuaZ</div>
     <p class="header__text mt-3" id="intro-text" @click="applyRandomEffect">
@@ -12,6 +12,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'AppHeader',
   data() {
@@ -27,6 +29,20 @@ export default {
         'effect-bounce'
       ]
     };
+  },
+  computed: {
+    ...mapGetters('accessibility', [
+      'isColorblindMode', 
+      'isVisualRestMode', 
+      'isNightMode'
+    ]),
+    accessibilityClasses() {
+      return {
+        'daltonismo': this.isColorblindMode,
+        'descanso-visual': this.isVisualRestMode,
+        'modo-nocturno': this.isNightMode
+      }
+    }
   },
   methods: {
     applyRandomEffect() {
@@ -143,5 +159,16 @@ export default {
   0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-30px); }
   60% { transform: translateY(-15px); }
+}
+
+/* Apply accessibility modes correctly within scoped styles */
+.header.descanso-visual {
+  background: linear-gradient(135deg, #f7f7f7, #e2e2e2) !important;
+  color: #333 !important;
+}
+
+.header.modo-nocturno {
+  background: linear-gradient(135deg, #333, #444) !important;
+  color: #cccccc !important;
 }
 </style>

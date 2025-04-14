@@ -1,5 +1,5 @@
 <template>
-  <div class="radio-modal" v-if="visible" :class="{ 'minimized': isMinimized, 'playing': isPlaying }">
+  <div class="radio-modal" v-if="visible" :class="[accessibilityClasses, { 'minimized': isMinimized, 'playing': isPlaying }]">
     <div class="radio-player" v-if="!isMinimized">
       <div class="radio-header">
         <div class="radio-player__title">Radio <span class="makuaz-brand">MaKuaZ</span></div>
@@ -62,9 +62,33 @@ export default {
   },
   computed: {
     ...mapGetters('modals', ['isRadioModalVisible']),
+    ...mapGetters('accessibility', [
+      'isColorblindMode', 
+      'isVisualRestMode', 
+      'isNightMode',
+      'isHighContrastMode',
+      'isLineSpacingMode',
+      'isLinkHighlightMode',
+      'isCursorLargeMode',
+      'isNoAnimationsMode',
+      'isDyslexiaFriendlyMode'
+    ]),
     visible() {
       console.log('RadioModal visible computed property called:', this.isRadioModalVisible);
       return this.isRadioModalVisible;
+    },
+    accessibilityClasses() {
+      return {
+        'daltonismo': this.isColorblindMode,
+        'descanso-visual': this.isVisualRestMode,
+        'modo-nocturno': this.isNightMode,
+        'alto-contraste': this.isHighContrastMode,
+        'espaciado-lineas': this.isLineSpacingMode,
+        'resaltar-enlaces': this.isLinkHighlightMode,
+        'cursor-grande': this.isCursorLargeMode,
+        'sin-animaciones': this.isNoAnimationsMode,
+        'fuente-dislexia': this.isDyslexiaFriendlyMode
+      }
     }
   },
   created() {
@@ -201,6 +225,50 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* Estilos para modos de accesibilidad */
+.radio-modal.alto-contraste .radio-player,
+.radio-modal.alto-contraste .radio-minimized {
+  background: #000 !important;
+  border: 2px solid #fff !important;
+  color: #fff !important;
+}
+
+.radio-modal.alto-contraste .radio-player__button,
+.radio-modal.alto-contraste .control-btn {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+.radio-modal.modo-nocturno .radio-player,
+.radio-modal.modo-nocturno .radio-minimized {
+  background: linear-gradient(135deg, #333, #444) !important;
+  color: #cccccc !important;
+}
+
+.radio-modal.descanso-visual .radio-player,
+.radio-modal.descanso-visual .radio-minimized {
+  background: linear-gradient(135deg, #f7f7f7, #e2e2e2) !important;
+  color: #333 !important;
+}
+
+.radio-modal.sin-animaciones .radio-player__bar,
+.radio-modal.sin-animaciones .radio-player.playing,
+.radio-modal.sin-animaciones .radio-minimized.playing i {
+  animation: none !important;
+}
+
+.radio-modal.espaciado-lineas .radio-player__title,
+.radio-modal.espaciado-lineas .radio-minimized span {
+  line-height: 1.8 !important;
+  letter-spacing: 0.05em !important;
+}
+
+.radio-modal.fuente-dislexia .radio-player__title,
+.radio-modal.fuente-dislexia .radio-minimized span {
+  font-family: 'OpenDyslexic', sans-serif !important;
 }
 
 .radio-header {

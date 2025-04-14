@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="home" :class="accessibilityClasses">
     <AppHeader />
     
     <!-- Secciones dinámicas que aparecen/desaparecen según navegación -->
@@ -34,6 +34,7 @@ import ScrollToTop from '@/components/ScrollToTop.vue'
 import EducationModal from '@/components/modals/EducationModal.vue'
 import FigmaPrototypeModal from '@/components/modals/FigmaPrototypeModal.vue'
 import RadioModal from '@/components/modals/RadioModal.vue'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'HomeView',
@@ -57,6 +58,30 @@ export default {
     },
     isActive() {
       return (sectionId) => this.$store.getters['navigation/isActive'](sectionId);
+    },
+    ...mapGetters('accessibility', [
+      'isColorblindMode', 
+      'isVisualRestMode', 
+      'isNightMode',
+      'isHighContrastMode',
+      'isLineSpacingMode',
+      'isLinkHighlightMode',
+      'isCursorLargeMode',
+      'isNoAnimationsMode',
+      'isDyslexiaFriendlyMode'
+    ]),
+    accessibilityClasses() {
+      return {
+        'daltonismo': this.isColorblindMode,
+        'descanso-visual': this.isVisualRestMode,
+        'modo-nocturno': this.isNightMode,
+        'alto-contraste': this.isHighContrastMode,
+        'espaciado-lineas': this.isLineSpacingMode,
+        'resaltar-enlaces': this.isLinkHighlightMode,
+        'cursor-grande': this.isCursorLargeMode,
+        'sin-animaciones': this.isNoAnimationsMode,
+        'fuente-dislexia': this.isDyslexiaFriendlyMode
+      }
     }
   },
   mounted() {
@@ -88,5 +113,33 @@ export default {
 .modo-nocturno {
   background-color: #2e2e2e;
   color: #cccccc;
+}
+
+/* Estilos específicos para el modo de alto contraste */
+.alto-contraste .dynamic-sections section,
+.alto-contraste .header,
+.alto-contraste .presentation {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+.alto-contraste .card,
+.alto-contraste .card-body {
+  background-color: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+.alto-contraste .btn {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+  font-weight: bold !important;
+}
+
+.alto-contraste a {
+  color: #fff !important;
+  text-decoration: underline !important;
 }
 </style>

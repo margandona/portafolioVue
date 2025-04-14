@@ -4,6 +4,7 @@ export const state = {
   isRadioModalVisible: false,
   isEducationModalVisible: false,
   isFigmaModalVisible: false,
+  isDisponibilityModalVisible: false,
   educationReflection: null
 };
 
@@ -26,6 +27,12 @@ export const mutations = {
   },
   HIDE_FIGMA_MODAL(state) {
     state.isFigmaModalVisible = false;
+  },
+  SHOW_DISPONIBILITY_MODAL(state) {
+    state.isDisponibilityModalVisible = true;
+  },
+  HIDE_DISPONIBILITY_MODAL(state) {
+    state.isDisponibilityModalVisible = false;
   },
   SET_EDUCATION_REFLECTION(state, reflectionKey) {
     console.log('MUTATION: SET_EDUCATION_REFLECTION', reflectionKey);
@@ -53,6 +60,12 @@ export const actions = {
   hideFigmaModal({ commit }) {
     commit('HIDE_FIGMA_MODAL');
   },
+  showDisponibilityModal({ commit }) {
+    commit('SHOW_DISPONIBILITY_MODAL');
+  },
+  hideDisponibilityModal({ commit }) {
+    commit('HIDE_DISPONIBILITY_MODAL');
+  },
   showEducationReflection({ commit }, reflectionKey) {
     console.log('ACTION: showEducationReflection', reflectionKey);
     commit('SET_EDUCATION_REFLECTION', reflectionKey);
@@ -66,6 +79,7 @@ export const getters = {
   },
   isEducationModalVisible: state => state.isEducationModalVisible,
   isFigmaModalVisible: state => state.isFigmaModalVisible,
+  isDisponibilityModalVisible: state => state.isDisponibilityModalVisible,
   educationReflection: state => {
     console.log('GETTER: educationReflection called, value:', state.educationReflection);
     return state.educationReflection;
