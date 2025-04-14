@@ -121,16 +121,45 @@ export default {
   methods: {
     showReflection(reflectionKey) {
       console.log('Attempting to show reflection:', reflectionKey);
+      
+      // 1. Set in Vuex for reactivity
       this.$store.dispatch('modals/showEducationReflection', reflectionKey);
       
-      // Add debugging for jQuery
-      if (window.jQuery) {
-        console.log('jQuery is available, attempting to show modal');
-        window.jQuery('#educationModal').modal('show');
+      // 2. Access the modal directly through parent component (more reliable)
+      if (this.$parent && this.$parent.$refs.educationModal) {
+        console.log('Found educationModal reference, calling direct method');
+        this.$parent.$refs.educationModal.showDirectReflection(reflectionKey);
       } else {
-        console.error('jQuery is NOT available - modal cannot be shown');
+        console.warn('Could not find educationModal reference, falling back to jQuery');
+        // 3. Fallback to jQuery (less reliable)
+        if (window.jQuery) {
+          console.log('jQuery is available, attempting to show modal');
+          
+          // Ensure content is set before showing modal
+          if (document.getElementById('modal-content')) {
+            document.getElementById('modal-content').innerText = this.getReflectionText(reflectionKey);
+          }
+          
+          window.jQuery('#educationModal').modal('show');
+        } else {
+          console.error('jQuery is NOT available - modal cannot be shown');
+          alert('Lo siento, hubo un problema al mostrar la reflexión. Por favor, inténtalo de nuevo.');
+        }
       }
     },
+    
+    // Helper to get reflection text directly if needed
+    getReflectionText(key) {
+      const reflections = {
+        reflexion1: '¿Cómo crees que Gabriela Mistral y Humberto Maturana habrían adaptado sus enfoques educativos a las metodologías y tecnologías modernas para seguir mejorando la enseñanza?',
+        reflexion2: '¿Cómo podemos diseñar experiencias educativas que sean tanto divertidas como relevantes para maximizar la efectividad del aprendizaje y mantener el interés de los estudiantes?',
+        reflexion3: '¿Cómo podemos integrar más oportunidades de práctica y experiencias reales en el aprendizaje para garantizar una asimilación más efectiva y duradera de los conocimientos?',
+        reflexion4: '¿Cómo podemos diseñar entornos tecnológicos que fomenten y faciliten el desarrollo de la habilidad de aprender a aprender, asegurando que las personas puedan adaptarse y evolucionar de manera autónoma?',
+        reflexion5: 'Estoy trabajando para que pronto interactues con esta sección.'
+      };
+      return reflections[key] || 'Reflexión no disponible';
+    },
+    
     openFigmaPrototype() {
       console.log('Attempting to open Figma prototype modal');
       this.isLoading = true;

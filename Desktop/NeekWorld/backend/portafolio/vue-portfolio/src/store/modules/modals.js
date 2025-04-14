@@ -3,7 +3,8 @@ export const namespaced = true;
 export const state = {
   isRadioModalVisible: false,
   isEducationModalVisible: false,
-  isFigmaModalVisible: false
+  isFigmaModalVisible: false,
+  educationReflection: null
 };
 
 export const mutations = {
@@ -25,6 +26,10 @@ export const mutations = {
   },
   HIDE_FIGMA_MODAL(state) {
     state.isFigmaModalVisible = false;
+  },
+  SET_EDUCATION_REFLECTION(state, reflectionKey) {
+    console.log('MUTATION: SET_EDUCATION_REFLECTION', reflectionKey);
+    state.educationReflection = reflectionKey;
   }
 };
 
@@ -47,6 +52,10 @@ export const actions = {
   },
   hideFigmaModal({ commit }) {
     commit('HIDE_FIGMA_MODAL');
+  },
+  showEducationReflection({ commit }, reflectionKey) {
+    console.log('ACTION: showEducationReflection', reflectionKey);
+    commit('SET_EDUCATION_REFLECTION', reflectionKey);
   }
 };
 
@@ -56,5 +65,9 @@ export const getters = {
     return state.isRadioModalVisible;
   },
   isEducationModalVisible: state => state.isEducationModalVisible,
-  isFigmaModalVisible: state => state.isFigmaModalVisible
+  isFigmaModalVisible: state => state.isFigmaModalVisible,
+  educationReflection: state => {
+    console.log('GETTER: educationReflection called, value:', state.educationReflection);
+    return state.educationReflection;
+  }
 };
