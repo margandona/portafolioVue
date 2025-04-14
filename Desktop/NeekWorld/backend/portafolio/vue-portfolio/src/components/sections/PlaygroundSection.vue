@@ -26,7 +26,7 @@
                 o computadora.
               </p>
               
-              <a href="@/assets/src/pokedex/pokedex.html" target="_blank" class="btn btn-primary">Jugar con la Dex</a>
+              <button class="btn btn-primary" @click="showDisponibilityModal">Jugar con la Dex</button>
             </div>
           </div>
         </div>
@@ -40,7 +40,7 @@
               <h5 class="card-title">GoshtPetz: Juego de simulación de vida</h5>
               <p class="card-text">Un prototipo de juego basado en una historia original, 
               diseñado para ofrecerte momentos de imaginación y diversión sin límites.</p>
-              <a href="@/assets/src/mascotaV3.5/index.html" class="btn btn-primary">Prueba y diviertete</a>
+              <button class="btn btn-primary" @click="showDisponibilityModal">Prueba y diviertete</button>
             </div>
           </div>
         </div>
@@ -72,6 +72,11 @@
 <script>
 export default {
   name: 'PlaygroundSection',
+  methods: {
+    showDisponibilityModal() {
+      this.$store.dispatch('modals/showDisponibilityModal');
+    }
+  }
 };
 </script>
 

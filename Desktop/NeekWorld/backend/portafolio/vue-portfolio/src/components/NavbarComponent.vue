@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light nav">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light nav" :class="accessibilityClasses">
     <!-- Left side: Toggle menu button -->
     <button class="navbar-toggler order-1" type="button" @click="toggleMenu" 
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,8 +81,27 @@ export default {
     ...mapGetters('accessibility', [
       'isColorblindMode', 
       'isVisualRestMode', 
-      'isNightMode'
-    ])
+      'isNightMode',
+      'isHighContrastMode',
+      'isLineSpacingMode',
+      'isLinkHighlightMode',
+      'isCursorLargeMode',
+      'isNoAnimationsMode',
+      'isDyslexiaFriendlyMode'
+    ]),
+    accessibilityClasses() {
+      return {
+        'daltonismo': this.isColorblindMode,
+        'descanso-visual': this.isVisualRestMode,
+        'modo-nocturno': this.isNightMode,
+        'alto-contraste': this.isHighContrastMode,
+        'espaciado-lineas': this.isLineSpacingMode,
+        'resaltar-enlaces': this.isLinkHighlightMode,
+        'cursor-grande': this.isCursorLargeMode,
+        'sin-animaciones': this.isNoAnimationsMode,
+        'fuente-dislexia': this.isDyslexiaFriendlyMode
+      }
+    }
   },
   methods: {
     toggleMenu() {
@@ -411,5 +430,90 @@ export default {
 
 .nav.descanso-visual .nav-link {
   color: #333 !important;
+}
+
+/* Estilos específicos para el modo de alto contraste en el navbar */
+.nav.alto-contraste {
+  background-color: #000 !important;
+  border-bottom: 2px solid #fff !important;
+}
+
+.nav.alto-contraste .navbar-brand {
+  color: #fff !important;
+  font-weight: bold !important;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+.nav.alto-contraste .nav-link {
+  color: #fff !important;
+  font-weight: bold !important;
+  text-decoration: underline !important;
+}
+
+.nav.alto-contraste .nav-link:hover,
+.nav.alto-contraste .nav-link:focus,
+.nav.alto-contraste .nav-link.active {
+  background-color: #fff !important;
+  color: #000 !important;
+  border-radius: 5px !important;
+}
+
+.nav.alto-contraste .navbar-toggler {
+  background-color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+.nav.alto-contraste .navbar-toggler-icon {
+  filter: invert(1) !important;
+}
+
+.nav.alto-contraste .navbar-nav .nav-item {
+  margin: 5px 2px !important;
+}
+
+.nav.alto-contraste .accessibility-shortcut {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+.nav.alto-contraste .accessibility-menu {
+  background-color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+.nav.alto-contraste .access-btn {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+.nav.alto-contraste .access-btn:hover,
+.nav.alto-contraste .access-btn.active {
+  background-color: #000 !important;
+  color: #fff !important;
+  outline: 2px solid #fff !important;
+}
+
+.nav.alto-contraste .navbar-logo {
+  filter: invert(1) !important;
+}
+
+/* Estilos específicos para fuente dislexia en el navbar */
+.nav.fuente-dislexia .nav-icon,
+.nav.fuente-dislexia i[class*="fa-"] {
+  font-family: 'Font Awesome 5 Free', 'Font Awesome 5 Brands' !important;
+  display: inline-block !important;
+}
+
+.nav.fuente-dislexia .navbar-brand {
+  font-family: 'Lobster', cursive !important;
+}
+
+.nav.fuente-dislexia .nav-link {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
 }
 </style>

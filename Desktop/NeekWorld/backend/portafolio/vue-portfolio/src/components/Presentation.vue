@@ -1,5 +1,5 @@
 <template>
-  <section class="presentation" id="presentation">
+  <section class="presentation" id="presentation" :class="accessibilityClasses">
     <div class="presentation__text">
       <h1>Soy Marcos Argandoña</h1>
       <p>
@@ -31,8 +31,24 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'ProfilePresentation',
+  computed: {
+    ...mapGetters('accessibility', [
+      'isColorblindMode', 
+      'isVisualRestMode', 
+      'isNightMode'
+    ]),
+    accessibilityClasses() {
+      return {
+        'daltonismo': this.isColorblindMode,
+        'descanso-visual': this.isVisualRestMode,
+        'modo-nocturno': this.isNightMode
+      }
+    }
+  }
 };
 </script>
 
@@ -113,5 +129,26 @@ export default {
 
 .presentation__link:hover {
   color: #ddd;
+}
+
+/* Estilos para modos de accesibilidad dentro del componente */
+.presentation.descanso-visual {
+  background: linear-gradient(135deg, #f7f7f7, #e2e2e2) !important;
+  color: #333 !important;
+}
+
+.presentation.modo-nocturno {
+  background: linear-gradient(135deg, #333, #444) !important;
+  color: #cccccc !important;
+}
+
+.presentation.modo-nocturno .presentation__link,
+.presentation.modo-nocturno .presentation__links a {
+  color: #cccccc !important;
+}
+
+.presentation.descanso-visual .presentation__link,
+.presentation.descanso-visual .presentation__links a {
+  color: #333 !important;
 }
 </style>
