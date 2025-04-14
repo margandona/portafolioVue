@@ -3,105 +3,95 @@
     <div class="container">
       <h2 class="section-title">Acerca de Makuaz</h2>
       
-      <div class="row">
+      <div class="row align-items-center mb-5">
+        <div class="col-lg-4 text-center mb-4 mb-lg-0">
+          <div class="profile-container">
+            <img src="@/assets/img/img.jpg" alt="Marcos Makuaz" class="img-fluid about-image">
+            <a href="mailto:m.argando@gmail.com" class="contact-link"><i class="fas fa-envelope"></i> m.argando@gmail.com</a>
+          </div>
+        </div>
         <div class="col-lg-8">
-          <h3>Hola, mi nombre es Marcos, pero también me conocen como MaKuaZ.</h3>
-          <p>
-            Me gradué como profesor de historia y geografía en 2011 y posteriormente como ingeniero informático multimedia. 
-            Siempre he trabajado de forma independiente en áreas medioambientales, desarrollo 
-            y análisis web. He participado en diversos cursos que abarcan temas como ventas, 
-            evaluación educativa, liderazgo de unidad técnico-pedagógica y neurociencias aplicadas a la educación.
-          </p>
-          <p>Actualmente estoy diseñando con mi equipo de NeekWorld soluciones para empresas y organizaciones
-          que desean innovar en su presencia digital y mejora de procesos mediante tecnología.</p>
-          <p>
-            Mi enfoque se centra en la accesibilidad y la inclusión, asegurando que todos puedan disfrutar de las experiencias digitales que creo. 
-            Estoy comprometido a aprender y crecer continuamente en este campo en constante evolución.
-          </p>
-          <p>¡Me encantaría saber de ti! <a href="mailto:marcos@makuaz.com">marcos@makuaz.com</a></p>
-        </div>
-        <div class="col-lg-4">
-          <img src="@/assets/img/img.jpg" alt="Marcos Makuaz" class="img-fluid about-image">
+          <div class="about-card">
+            <h3 class="mb-3">Hola, soy Marcos (MaKuaZ)</h3>
+            <p>
+              Ingeniero informático multimedia y profesor de historia, combino ambos mundos para crear experiencias digitales
+              accesibles e inclusivas. Mi enfoque multidisciplinario me permite abordar proyectos desde diferentes perspectivas,
+              uniendo tecnología, educación y creatividad.
+            </p>
+            <p>
+              Actualmente lidero proyectos en NeekWorld, donde diseñamos soluciones innovadoras 
+              para empresas que buscan transformar su presencia digital y optimizar procesos mediante tecnología.
+            </p>
+            <a href="/documents/curriculum.pdf" download="curriculum-marcos-argandona.pdf" class="btn btn-primary mt-3 download-btn">
+              <i class="fas fa-download"></i> Descargar Currículum
+            </a>
+          </div>
         </div>
       </div>
       
-      <div class="row mt-5">
-        <div class="col-md-3">
-          <h3>Habilidades</h3>
-          <ul class="skills-list">
-            <li>Diseño centrado en el usuario</li>
-            <li>Comunicación efectiva</li>
-            <li>Investigación de usuarios</li>
-            <li>Desarrollo Full Stack</li>
-            <li>Marketing digital</li>
-            <li>Desarrollo Multimedia</li>
-            <li>Desarrollo de Videojuegos</li>
-            <li>Automatizaciones IA</li>
-            <li>Integración de APIs</li>
-            <li>Accesibilidad web</li>
-          </ul>
+      <div class="row skills-section">
+        <div class="col-12 mb-4">
+          <h3 class="skills-title">Áreas de especialización</h3>
         </div>
-        <div class="col-md-3">
-          <h3>Tecnologías</h3>
-          <ul class="skills-list">
-            <li>Oracle Data Modeler</li>
-            <li>Firebase</li>
-            <li>Scrum by Trello</li>
-            <li>VSCode</li>
-            <li>Git / GitHub</li>
-            <li>Docker</li>
-            <li>AWS / Azure</li>
-            <li>Adobe Creative Suite</li>
-            <li>Figma / Sketch</li>
-          </ul>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="skill-card">
+            <div class="skill-icon"><i class="fas fa-laptop-code"></i></div>
+            <h4>Desarrollo</h4>
+            <ul class="skills-list">
+              <li>Full Stack</li>
+              <li>Multimedia</li>
+              <li>Videojuegos</li>
+              <li>Integración APIs</li>
+              <li>JavaScript / TypeScript</li>
+              <li>Vue.js / Node.js</li>
+            </ul>
+          </div>
         </div>
-        <div class="col-md-3">
-          <h3>Lenguajes</h3>
-          <ul class="skills-list">
-            <li>JavaScript / TypeScript</li>
-            <li>Java</li>
-            <li>Python</li>
-            <li>PHP</li>
-            <li>CSS BEM</li>
-            <li>HTML5</li>
-            <li>SQL</li>
-            <li>GraphQL</li>
-          </ul>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="skill-card">
+            <div class="skill-icon"><i class="fas fa-paint-brush"></i></div>
+            <h4>Diseño</h4>
+            <ul class="skills-list">
+              <li>UX/UI Design</li>
+              <li>Design Thinking</li>
+              <li>Accesibilidad Web</li>
+              <li>Adobe Creative Suite</li>
+              <li>Figma / Sketch</li>
+              <li>CSS BEM / SASS</li>
+            </ul>
+          </div>
         </div>
-        <div class="col-md-3">
-          <h3>Frameworks</h3>
-          <ul class="skills-list">
-            <li>Design Thinking</li>
-            <li>Vue.js</li>
-            <li>Ionic by Angular</li>
-            <li>Bootstrap</li>
-            <li>jQuery</li>
-            <li>SASS / SCSS</li>
-            <li>Node.js</li>
-            <li>Express</li>
-            <li>Laravel</li>
-          </ul>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="skill-card">
+            <div class="skill-icon"><i class="fas fa-robot"></i></div>
+            <h4>Tecnologías</h4>
+            <ul class="skills-list">
+              <li>Docker</li>
+              <li>AWS / Azure</li>
+              <li>Firebase</li>
+              <li>Automatizaciones IA</li>
+              <li>Git / GitHub</li>
+              <li>Oracle Data Modeler</li>
+            </ul>
+          </div>
         </div>
-      </div>
-      
-      <div class="row mt-5">
-        <div class="col-12 text-center">
-          <h3>Certificaciones y Educación</h3>
-          <p>
-            Ingeniero Informático Multimedia - Universidad UNIACC<br>
-            Profesor de Historia y Geografía - Universidad Andrés Bello<br>
-            Scrum Master Certified<br>
-            Google UX Design Professional Certificate<br>
-            Microsoft Certified: Azure Fundamentals
-          </p>
-        </div>
-      </div>
-      
-      <div class="row mt-3">
-        <div class="col-12 text-center">
-          <a href="/documents/curriculum.pdf" download="curriculum-marcos-argandona.pdf" class="btn btn-primary mt-3 download-btn">
-            <i class="fas fa-download"></i> Descarga mi Currículum Completo
-          </a>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="skill-card">
+            <div class="skill-icon"><i class="fas fa-graduation-cap"></i></div>
+            <h4>Educación</h4>
+            <ul class="skills-list">
+              <li>Ing. Informático Multimedia</li>
+              <li>Prof. Historia y Geografía</li>
+              <li>Scrum Master Certified</li>
+              <li>Google UX Design Certificate</li>
+              <li>Frontend Trainee VUE</li>
+              <li>Backend Trainee Node.js</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -116,16 +106,16 @@ export default {
 
 <style scoped>
 .about-section {
-  padding: 50px 0;
+  padding: 70px 0;
   background: linear-gradient(135deg, #5b86e5, #36d1dc);
   color: white;
 }
 
 .section-title {
   font-size: 2.5rem;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
   text-align: center;
-  text-transform: uppercase;
+  font-weight: 700;
   letter-spacing: 1.5px;
   position: relative;
 }
@@ -136,38 +126,109 @@ export default {
   height: 4px;
   background: #fff;
   position: absolute;
-  bottom: -10px;
+  bottom: -15px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.about-section h3 {
-  font-size: 1.5rem;
-  margin-top: 20px;
-  margin-bottom: 15px;
-}
-
-.about-section p {
-  font-size: 1.2rem;
-  line-height: 1.6;
-}
-
-.about-section a {
-  color: #ffd700;
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.about-section a:hover {
-  text-decoration: underline;
-  color: #fff;
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .about-image {
-  border-radius: 10px;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-  max-width: 100%;
-  height: auto;
+  border-radius: 50%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.about-image:hover {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.contact-link {
+  margin-top: 15px;
+  color: #ffd700;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.contact-link:hover {
+  color: white;
+  text-decoration: none;
+}
+
+.contact-link i {
+  margin-right: 5px;
+}
+
+.about-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  height: 100%;
+}
+
+.about-card h3 {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.about-card p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.skills-section {
+  margin-top: 50px;
+}
+
+.skills-title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+.skill-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 25px;
+  height: 100%;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.skill-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+}
+
+.skill-icon {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #ffd700;
+}
+
+.skill-card h4 {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: white;
+  font-size: 1.3rem;
 }
 
 .skills-list {
@@ -179,7 +240,8 @@ export default {
   position: relative;
   padding-left: 20px;
   margin-bottom: 8px;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .skills-list li:before {
@@ -189,8 +251,8 @@ export default {
   color: #ffd700;
 }
 
-.btn-primary, .download-btn {
-  background: linear-gradient(135deg, #5b86e5, #36d1dc);
+.download-btn {
+  background: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -199,46 +261,36 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  margin: 0 auto;
   border-radius: 30px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.btn-primary:hover, .download-btn:hover {
-  background: linear-gradient(135deg, #36d1dc, #5b86e5);
-  color: white;
+.download-btn:hover {
+  background: #ffd700;
+  color: #333;
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
-.btn-primary i, .download-btn i {
+.download-btn i {
   margin-right: 8px;
 }
 
 @media (max-width: 768px) {
-  .about-section .col-lg-8,
-  .about-section .col-lg-4 {
-    text-align: center;
-  }
-
-  .section-title {
-    font-size: 2rem;
-  }
-
-  .about-section p {
-    font-size: 1rem;
+  .about-section {
+    padding: 50px 0;
   }
   
-  .skills-list li {
-    font-size: 0.9rem;
+  .about-card {
+    margin-bottom: 30px;
   }
-
-  .about-image {
-    margin-top: 20px;
-    max-width: 200px;
-    margin-left: auto;
-    margin-right: auto;
+  
+  .skill-card {
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-size: 2rem;
   }
 }
 </style>

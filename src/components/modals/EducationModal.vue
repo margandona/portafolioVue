@@ -48,21 +48,44 @@ export default {
   },
   methods: {
     showReflection(reflectionKey) {
+      console.log('EducationModal - showReflection called with:', reflectionKey);
       this.currentReflection = this.reflections[reflectionKey] || 'Reflexión no disponible';
-      // Usar bootstrap para mostrar el modal
-      if (window.$ && window.$.fn && window.$.fn.modal) {
-        window.$('#educationModal').modal('show');
+      // Direct jQuery call to ensure modal shows
+      if (window.jQuery) {
+        console.log('EducationModal - jQuery found, showing modal');
+        try {
+          window.jQuery('#educationModal').modal('show');
+          console.log('EducationModal - show command executed');
+        } catch (error) {
+          console.error('EducationModal - Error showing modal:', error);
+        }
+      } else {
+        console.error('EducationModal - jQuery not found, cannot show modal');
       }
     }
   },
   mounted() {
-    // Inicializar el modal usando Bootstrap
-    if (window.$ && window.$.fn && window.$.fn.modal) {
-      window.$('#educationModal').on('hidden.bs.modal', () => {
-        this.currentReflection = '';
-        // Reset the reflection key in Vuex when modal is closed
-        this.$store.dispatch('modals/showEducationReflection', null);
-      });
+    console.log('EducationModal component mounted');
+    // Check and initialize the modal
+    if (window.jQuery) {
+      console.log('EducationModal - jQuery found in mounted');
+      try {
+        window.jQuery('#educationModal').modal({
+          show: false
+        });
+        console.log('EducationModal - Modal initialized successfully');
+        
+        window.jQuery('#educationModal').on('hidden.bs.modal', () => {
+          console.log('EducationModal - Modal hidden event triggered');
+          this.currentReflection = '';
+          // Reset the reflection key in Vuex when modal is closed
+          this.$store.dispatch('modals/showEducationReflection', null);
+        });
+      } catch (error) {
+        console.error('EducationModal - Error initializing modal:', error);
+      }
+    } else {
+      console.error('EducationModal - jQuery not found in mounted hook');
     }
   }
 };

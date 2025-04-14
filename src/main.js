@@ -3,39 +3,31 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
-// Bootstrap y jQuery
+// Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap'
-import 'jquery'
-import '@popperjs/core'
 
-// Font Awesome
-import '@fortawesome/fontawesome-free/css/all.min.css'
+// Import the bootstrap initialization function
+import { checkBootstrapModal } from './bootstrap-init'
 
-// Estilos globales
-import './assets/css/style.css'
+// Check if Bootstrap modal is available
+checkBootstrapModal();
 
-// Crear la app
+// Debug check for store modules
+console.log('Store modules check:');
+console.log('- Has modals module:', !!store._modules.root._children.modals);
+
+// Create and mount the Vue app
 const app = createApp(App)
-
-// Directiva personalizada para accesibilidad
-app.directive('accessibility', {
-  mounted(el, binding) {
-    if (binding.value) {
-      el.classList.add(binding.arg)
-    } else {
-      el.classList.remove(binding.arg)
-    }
-  },
-  updated(el, binding) {
-    if (binding.value) {
-      el.classList.add(binding.arg)
-    } else {
-      el.classList.remove(binding.arg)
-    }
-  }
-})
-
 app.use(store)
 app.use(router)
 app.mount('#app')
+
+// Try again to initialize Bootstrap after the app is mounted
+setTimeout(() => {
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    console.log('Initializing modals after app mount');
+    window.jQuery('.modal').modal({show: false});
+  } else {
+    console.error('Bootstrap modal still not available after app mount');
+  }
+}, 1000);

@@ -23,7 +23,7 @@
         <a href="https://www.tiktok.com/@makuaz.dev" data-toggle="tooltip" title="Tik-Tok"><i class="fab fa-tiktok"></i></a>
         <a href="https://linkedin.com/in/marcos-argandoña-ugarte-09731a37/" data-toggle="tooltip" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
         <a href="https://discord.gg/Pj6PHM7Xte" data-toggle="tooltip" title="Discord"><i class="fab fa-discord"></i></a>
-        <a href="mailto:makuaz@makuaz.cl" data-toggle="tooltip" title="Email"><i class="fas fa-envelope"></i></a>
+        <a href="mailto:m.argando@gmail.com" data-toggle="tooltip" title="Email"><i class="fas fa-envelope"></i></a>
         <a href="https://github.com/margandona" data-toggle="tooltip" title="GitHub"><i class="fab fa-github"></i></a>
       </div>
     </div>
@@ -73,8 +73,29 @@ export default {
   transition: color 0.3s;
 }
 
-.presentation__links a:hover {
-  color: #ddd;
+/* Colores específicos para cada icono al hacer hover */
+.presentation__links a:hover .fa-youtube {
+  color: #FF0000; /* Rojo para YouTube */
+}
+
+.presentation__links a:hover .fa-tiktok {
+  color: #00f2ea; /* Cian para TikTok */
+}
+
+.presentation__links a:hover .fa-linkedin {
+  color: #0077B5; /* Azul para LinkedIn */
+}
+
+.presentation__links a:hover .fa-discord {
+  color: #7289DA; /* Morado para Discord */
+}
+
+.presentation__links a:hover .fa-envelope {
+  color: #D44638; /* Rojo para Email/Gmail */
+}
+
+.presentation__links a:hover .fa-github {
+  color: #211F1F; /* Negro para GitHub */
 }
 
 .presentation__image {

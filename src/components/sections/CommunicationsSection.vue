@@ -19,7 +19,7 @@
         <a href="https://discord.gg/Pj6PHM7Xte" target="_blank" rel="noopener noreferrer">
           <i class="fab fa-discord"></i> Discord
         </a>
-        <a href="mailto:makuaz@makuaz.cl">
+        <a href="mailto:m.argando@gmail.com">
           <i class="fas fa-envelope"></i> Email
         </a>
         <a href="https://github.com/margandona" target="_blank" rel="noopener noreferrer">
