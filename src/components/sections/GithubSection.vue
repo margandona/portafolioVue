@@ -4,6 +4,104 @@
       <h2 class="section-title">Mis Repositorios de GitHub</h2>
       <p class="github-intro">Explora mis proyectos open source y otros trabajos en GitHub</p>
       
+      <!-- Featured Bootcamp Projects Section -->
+      <div class="featured-projects mb-5">
+        <h3 class="featured-title mb-4">Actividades que corresponden a certificaciones</h3>
+        <div class="row">
+          <!-- Card 1: Portfolio Project -->
+          <div class="col-md-4 mb-4">
+            <div class="repo-card card featured-card h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <i class="fab fa-github repo-icon me-2"></i>
+                  <h3 class="card-title mb-0">Portfolio Vue</h3>
+                </div>
+                <p class="card-text repo-description">
+                  Este portafolio representa la culminación de mi aprendizaje en desarrollo web. A través de este proyecto, logré integrar mis conocimientos de frontend con Vue y backend con Node.js, creando una solución completa que muestra mi evolución como desarrollador.
+                </p>
+                <div class="repo-stats">
+                  <span class="repo-stat">
+                    <span class="language-dot" style="backgroundColor: #41b883"></span>
+                    Vue
+                  </span>
+                  <span class="repo-stat">
+                    <i class="far fa-calendar-alt"></i> 2023
+                  </span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="https://github.com/margandona/portafolioVue/tree/master/Desktop/NeekWorld/backend/portafolio" 
+                   target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                  <i class="fas fa-code"></i> Ver Código
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card 2: Backend Bootcamp Project -->
+          <div class="col-md-4 mb-4">
+            <div class="repo-card card featured-card h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <i class="fab fa-github repo-icon me-2"></i>
+                  <h3 class="card-title mb-0">Backend Node.js</h3>
+                </div>
+                <p class="card-text repo-description">
+                  Este proyecto representó un hito en mi camino como desarrollador backend. Gracias a la excelente mentoría y retroalimentación de los profesores del bootcamp, pude construir una API robusta que implementa las mejores prácticas de Node.js, demostrando la potencia del JavaScript en el servidor.
+                </p>
+                <div class="repo-stats">
+                  <span class="repo-stat">
+                    <span class="language-dot" style="backgroundColor: #f1e05a"></span>
+                    JavaScript
+                  </span>
+                  <span class="repo-stat">
+                    <i class="far fa-calendar-alt"></i> 2023
+                  </span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="https://github.com/margandona/trabajo3m4" 
+                   target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                  <i class="fas fa-code"></i> Ver Código
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card 3: Vue Framework Project -->
+          <div class="col-md-4 mb-4">
+            <div class="repo-card card featured-card h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <i class="fab fa-github repo-icon me-2"></i>
+                  <h3 class="card-title mb-0">Bootstrap + Vue</h3>
+                </div>
+                <p class="card-text repo-description">
+                  Proyecto realizado durante mi certificación frontend con Vue. Este desafío me permitió mejorar mis habilidades combinando el poder de Vue.js con Bootstrap para crear interfaces modernas y responsivas, consolidando mi formación como desarrollador frontend certificado.
+                </p>
+                <div class="repo-stats">
+                  <span class="repo-stat">
+                    <span class="language-dot" style="backgroundColor: #563d7c"></span>
+                    CSS/Bootstrap
+                  </span>
+                  <span class="repo-stat">
+                    <i class="far fa-calendar-alt"></i> 2022
+                  </span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="https://github.com/margandona/desafio_bootstrap" 
+                   target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                  <i class="fas fa-code"></i> Ver Código
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <h3 class="other-repos-title mb-4">Otros Repositorios</h3>
+      
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-light" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -59,6 +157,57 @@
         <a href="https://github.com/margandona" target="_blank" rel="noopener noreferrer" class="btn btn-light btn-lg">
           <i class="fab fa-github me-2"></i> Ver todos los repositorios
         </a>
+      </div>
+      
+      <!-- External Projects Section -->
+      <div class="external-projects mt-5 pt-4">
+        <h3 class="external-title mb-4">Otros Proyectos Destacados</h3>
+        <div class="row justify-content-center">
+          <div class="col-md-4 mb-4">
+            <div class="external-card card h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-landmark fa-3x mb-3"></i>
+                <h4>Proyecto Museo</h4>
+                <p>Una experiencia virtual inmersiva para explorar exposiciones digitales.</p>
+              </div>
+              <div class="card-footer text-center">
+                <a href="https://margandona.github.io/proyecto_museo/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">
+                  <i class="fas fa-external-link-alt me-2"></i> Visitar Sitio
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4 mb-4">
+            <div class="external-card card h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-globe fa-3x mb-3"></i>
+                <h4>NeekWorld</h4>
+                <p>Mi portal profesional con proyectos y servicios digitales.</p>
+              </div>
+              <div class="card-footer text-center">
+                <a href="https://www.neekworld.cl" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">
+                  <i class="fas fa-external-link-alt me-2"></i> Visitar Sitio
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4 mb-4">
+            <div class="external-card card h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-gamepad fa-3x mb-3"></i>
+                <h4>Juego Mascota</h4>
+                <p>Un divertido juego interactivo con mascotas virtuales.</p>
+              </div>
+              <div class="card-footer text-center">
+                <a href="https://margandona.github.io/juego_mascota/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">
+                  <i class="fas fa-external-link-alt me-2"></i> Visitar Sitio
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -160,6 +309,55 @@ export default {
   transform: translateX(-50%);
 }
 
+/* Featured and External Projects Styles */
+.featured-title, .other-repos-title, .external-title {
+  font-size: 1.8rem;
+  text-align: center;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.featured-title::after, .other-repos-title::after, .external-title::after {
+  content: '';
+  width: 40px;
+  height: 3px;
+  background: #fff;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.featured-card {
+  border-left: 5px solid #41b883;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.external-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.external-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+.external-card .card-body i {
+  color: #5b86e5;
+}
+
+.external-projects {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Existing Styles */
 .github-intro {
   font-size: 1.2rem;
   max-width: 700px;
@@ -259,6 +457,10 @@ export default {
   
   .section-title {
     font-size: 2rem;
+  }
+  
+  .featured-title, .other-repos-title, .external-title {
+    font-size: 1.5rem;
   }
 }
 </style>
