@@ -416,6 +416,35 @@ export default {
   filter: grayscale(100%);
 }
 
+/* Estilos mejorados para el modo daltonismo */
+.nav.daltonismo {
+  filter: none !important; /* Evitamos aplicar doble filtro */
+  position: fixed !important;
+  top: 0 !important;
+  margin: 0 !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  background: #333 !important;
+}
+
+.nav.daltonismo .navbar-brand,
+.nav.daltonismo .nav-link,
+.nav.daltonismo .nav-icon {
+  filter: grayscale(100%) !important;
+}
+
+.nav.daltonismo .navbar-brand {
+  color: white !important;
+}
+
+.nav.daltonismo .nav-link {
+  color: white !important;
+}
+
+.nav.daltonismo .navbar-toggler {
+  filter: grayscale(100%) !important;
+}
+
 .nav.modo-nocturno {
   background-color: #2e2e2e;
 }
