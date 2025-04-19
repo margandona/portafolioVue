@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Configuration and sensitive files
+.env
+*/.env
+/backend/src/config/firebase-adminsdk.json
+/backend/src/config/academy.json
+/functions/config/academy.json
+/functions/.env
+/functions/.runtimeconfig.json
+/.firebase/
+
+# Build and distribution files
+dist/
+*/dist/
+build/
+*/build/
+lib/
+*firebase-debug.log
+*ui-debug.log
+.firebase/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log
+
+# Cache and temporary files
+.cache/
+tmp/
+*/.temp/
+.temp/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Database files and backups
+*.sql
+*.sqlite
+/backend/database-backups/
+
+# Testing and coverage
+coverage/
+.nyc_output/
+
+# Generated assets
+/frontend/public/js/
+/frontend/public/css/
+/frontend/public/assets/
+/backend/public/assets/
+/functions/lib/
+
+# Miscellaneous
+*.pid
+*.seed
+.firebaserc
