@@ -1,0 +1,64 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Responses API",
+  "dateExported": "2023-11-15T10:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Respuestas",
+      "id": "responses-folder",
+      "description": "Operaciones con respuestas de evaluaciones"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Enviar Respuesta a Evaluación",
+      "id": "submit-response",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/responses/submit",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"evaluation_id\": {{evaluation_id}},\n  \"answers\": [2, 1]\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        }
+      ]
+    },
+    {
+      "name": "Obtener Historial de Evaluaciones",
+      "id": "get-evaluation-history",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/responses/history",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    }
+  ]
+}

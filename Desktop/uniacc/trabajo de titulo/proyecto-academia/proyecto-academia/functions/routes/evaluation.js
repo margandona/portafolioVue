@@ -1,32 +1,43 @@
 const express = require('express');
-const { 
-  createEvaluation, 
-  getEvaluationsByCourse, 
+const {
+  createEvaluation,
+  getEvaluationsByCourse,
+  getCompletedEvaluationsByUser,
   getEvaluationById,
   updateEvaluation,
-  deleteEvaluation 
+  deleteEvaluation
 } = require('../controllers/evaluationController');
 const { 
-  isAuthenticated, 
+  verifyToken,
+  checkRole,
   isTeacher,
-  hasCourseAccess
+  isStudent 
 } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-// Crear una nueva evaluación
-router.post('/', isAuthenticated, isTeacher, createEvaluation);
+// Crear una nueva evaluación (teacher, admin)
+router.post('/', verifyToken, checkRole(['teacher', 'admin']), createEvaluation);
 
-// Obtener evaluaciones de un curso
-router.get('/course/:courseId', isAuthenticated, hasCourseAccess, getEvaluationsByCourse);
+// Obtener evaluaciones por curso
+router.get('/course/:courseId', verifyToken, getEvaluationsByCourse);
 
 // Obtener una evaluación específica
-router.get('/:id', isAuthenticated, getEvaluationById);
+router.get('/:id', verifyToken, getEvaluationById);
 
-// Actualizar una evaluación
-router.put('/:id', isAuthenticated, updateEvaluation);
+// Obtener evaluaciones completadas por el usuario actual
+router.get('/completed', verifyToken, getCompletedEvaluationsByUser);
+
+// Obtener evaluaciones completadas por un usuario específico (admin)
+router.get('/completed/:userId', verifyToken, checkRole(['admin']), getCompletedEvaluationsByUser);
+
+// Actualizar una evaluación existente
+router.patch('/:id', verifyToken, checkRole(['teacher', 'admin']), updateEvaluation);
+
+// Actualizar una evaluación existente (PUT también soportado)
+router.put('/:id', verifyToken, checkRole(['teacher', 'admin']), updateEvaluation);
 
 // Eliminar una evaluación
-router.delete('/:id', isAuthenticated, deleteEvaluation);
+router.delete('/:id', verifyToken, checkRole(['teacher', 'admin']), deleteEvaluation);
 
 module.exports = router;

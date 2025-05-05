@@ -1,165 +1,154 @@
-import { createRouter, createWebHistory } from "vue-router";
-import Home from "@/views/HomeView.vue";
-import Login from "@/views/LoginView.vue";
-import Register from "@/views/RegisterView.vue";
+import { createRouter, createWebHistory } from 'vue-router';
 
-// Utilidad para obtener el rol del usuario
-const getUserRole = () => {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.role || null;
-  } catch (error) {
-    console.error("Error al decodificar el token:", error);
-    return null;
-  }
+// Placeholder component for routes that haven't been created yet
+const PlaceholderView = {
+  template: `
+    <div class="placeholder-view">
+      <div class="container py-5 text-center">
+        <h2>Page Under Construction</h2>
+        <p>This page is currently being developed and will be available soon.</p>
+        <router-link to="/" class="btn btn-primary">Return to Home</router-link>
+      </div>
+    </div>
+  `
 };
 
-// Definición de rutas
 const routes = [
-  // Rutas públicas
-  { path: "/", name: "Home", component: Home },
-  { path: "/login", name: "Login", component: Login },
-  { path: "/register", name: "Register", component: Register },
-  
-  // Rutas protegidas (requieren autenticación)
   {
-    path: "/dashboard",
-    name: "Dashboard",
-    component: () => import("@/views/DashboardView.vue"),
-    meta: { requiresAuth: true },
+    path: '/',
+    name: 'Home',
+    component: () => import('../views/HomeView.vue')
   },
   {
-    path: "/progress",
-    name: "Progress",
-    component: () => import("@/views/ProgressView.vue"),
-    meta: { requiresAuth: true, role: ["student"] },
+    path: '/about',
+    name: 'About',
+    component: () => import('../views/AboutView.vue')
   },
   {
-    path: "/enroll",
-    name: "Enroll",
-    component: () => import("@/views/EnrollView.vue"),
-    meta: { requiresAuth: true, role: ["student"] },
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginView.vue')
   },
   {
-    path: "/courses",
-    name: "Courses",
-    component: () => import("@/views/CourseListView.vue"),
-    meta: { requiresAuth: true },
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/RegisterView.vue')
   },
   {
-    path: "/courses/create",
-    name: "CreateCourse",
-    component: () => import("@/views/CreateCourseView.vue"),
-    meta: { requiresAuth: true, role: ["teacher", "admin"] },
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('../views/DashView.vue'),
+    meta: { requiresAuth: true }
+  },
+  // Rutas protegidas
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/ProfileView.vue'),
+    meta: { requiresAuth: true }
+  },
+  // Rutas de cursos
+  {
+    path: '/courses',
+    name: 'CourseList',
+    component: () => import('../views/courses/CourseList.vue')
   },
   {
-    path: "/courses/edit/:id",
-    name: "EditCourse",
-    component: () => import("@/views/EditCourseView.vue"),
-    meta: { requiresAuth: true, role: ["teacher", "admin"] },
+    path: '/courses/:id',
+    name: 'CourseDetail',
+    component: () => import('../views/courses/CourseDetail.vue'),
+    props: true
+  },
+  // Actualizar rutas de gestión de cursos para usar componentes reales
+  {
+    path: '/courses/create',
+    name: 'CreateCourse',
+    component: () => import('../views/courses/CourseCreate.vue'),
+    meta: { requiresAuth: true, roles: ['teacher', 'admin'] }
+  },
+  {
+    path: '/courses/:id/edit',
+    name: 'EditCourse',
+    component: () => import('../views/courses/CourseEdit.vue'),
     props: true,
+    meta: { requiresAuth: true, roles: ['teacher', 'admin'] }
   },
   {
-    path: "/courses/:id",
-    name: "CourseDetail",
-    component: () => import("@/views/CourseDetailView.vue"),
-    meta: { requiresAuth: true },
-    props: true,
+    path: '/courses/manage',
+    name: 'ManageCourses',
+    component: () => import('../views/courses/CourseManage.vue'),
+    meta: { requiresAuth: true, roles: ['teacher', 'admin'] }
+  },
+  // Rutas de cursos del usuario
+  {
+    path: '/courses/enrolled',
+    name: 'EnrolledCourses',
+    component: () => import('../views/courses/CourseEnrolled.vue'),
+    meta: { requiresAuth: true }
   },
   {
-    path: "/courses/students",
-    name: "CourseStudents",
-    component: () => import("@/views/StudentListModal.vue"),
-    meta: { requiresAuth: true, role: ["teacher"] },
+    path: '/courses/completed',
+    name: 'CompletedCourses',
+    component: PlaceholderView,
+    meta: { requiresAuth: true }
+  },
+  // Certificados - usando componente placeholder
+  {
+    path: '/certificates',
+    name: 'Certificates',
+    component: PlaceholderView,
+    meta: { requiresAuth: true }
+  },
+  // Configuración de cuenta - usando componente placeholder
+  {
+    path: '/account',
+    name: 'Account',
+    component: PlaceholderView,
+    meta: { requiresAuth: true }
+  },
+  // Panel de administración - usando componente placeholder
+  {
+    path: '/admin',
+    name: 'AdminPanel',
+    component: () => import('../views/admin/AdminDashboard.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
-    path: "/evaluations",
-    name: "EvaluationList",
-    component: () => import("@/views/EvaluationListView.vue"),
-    meta: { requiresAuth: true },
+    path: '/admin/users',
+    name: 'UserManagement',
+    component: () => import('../views/admin/UserManagementView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
   },
+  // Add the Moodle Courses route
   {
-    path: "/evaluations/manage",
-    name: "ManageEvaluations",
-    component: () => import("@/views/EvaluationView.vue"),
-    meta: { requiresAuth: true, role: ["teacher", "admin"] },
-  },
-  {
-    path: "/evaluations/create",
-    name: "CreateEvaluation",
-    component: () => import("@/views/EvaluationFormView.vue"),
-    meta: { requiresAuth: true, role: ["teacher", "admin"] },
-  },
-  {
-    path: "/evaluations/edit/:id",
-    name: "EditEvaluation",
-    component: () => import("@/views/EvaluationFormView.vue"),
-    meta: { requiresAuth: true, role: ["teacher", "admin"] },
-    props: true,
-  },
-  {
-    path: "/evaluations/:id",
-    name: "EvaluationDetail",
-    component: () => import("@/views/EvaluationDetailView.vue"),
-    meta: { requiresAuth: true },
-    props: true,
-  },
-  
-  // Rutas de administración
-  {
-    path: "/admin/enrollments",
-    name: "EnrollmentManagement",
-    component: () => import("@/views/EnrollmentListView.vue"),
-    meta: { requiresAuth: true, role: ["admin"] },
-  },
-  {
-    path: "/admin/users",
-    name: "UserManagement",
-    component: () => import("@/views/UserManagementView.vue"),
-    meta: { requiresAuth: true, role: ["admin"] },
-  },
-
-  // Rutas adicionales
-  { path: "/results", name: "Results", component: () => import("@/views/ResultsView.vue"), meta: { requiresAuth: true, role: ["student"] }},
-  { path: "/profile", name: "Profile", component: () => import("@/views/ProfileView.vue"), meta: { requiresAuth: true }},
-  { path: "/about", name: "About", component: () => import("@/views/AboutView.vue") },
-  { path: "/forgot-password", name: "ForgotPassword", component: () => import("@/views/ForgotPasswordView.vue") },
-
-  // Ruta para páginas no encontradas
-  { path: "/:pathMatch(.*)*", name: "NotFound", component: () => import("@/views/NotFoundView.vue") },
+    path: '/moodle-courses',
+    name: 'MoodleCourses',
+    component: () => import('../views/MoodleCoursesView.vue')
+  }
 ];
 
-// Configuración del router
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior() {
+    // Siempre vuelve al inicio cuando se cambia de página
+    return { top: 0 };
+  }
 });
 
-// Middleware de navegación
+// Navegación guard para rutas protegidas
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem("token");
-  const userRole = getUserRole();
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const requiredRoles = to.meta.roles;
+  const isAuthenticated = !!localStorage.getItem('token');
+  const userRole = localStorage.getItem('role'); // Asumimos que guardamos el rol en localStorage
 
-  try {
-    // Verificar si se requiere autenticación
-    if (to.meta.requiresAuth && !token) {
-      next({ name: "Login", query: { redirect: to.fullPath } });
-      return;
-    }
-
-    // Verificar si se requiere un rol específico
-    if (to.meta.role && !to.meta.role.includes(userRole)) {
-      next({ name: "Home" });
-      return;
-    }
-
+  if (requiresAuth && !isAuthenticated) {
+    next({ path: '/login', query: { redirect: to.fullPath } });
+  } else if (requiredRoles && (!userRole || !requiredRoles.includes(userRole))) {
+    next({ path: '/dashboard' }); // Redirigir si el usuario no tiene el rol adecuado
+  } else {
     next();
-  } catch (error) {
-    console.error("Error en la verificación de acceso:", error);
-    next({ name: "Home" });
   }
 });
 

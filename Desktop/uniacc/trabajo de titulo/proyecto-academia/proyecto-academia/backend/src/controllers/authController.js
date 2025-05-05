@@ -15,18 +15,47 @@ const validatePassword = (password) => {
   return passwordRegex.test(password);
 };
 
+// Validar teléfono (opcional)
+const validatePhone = (phone) => {
+  if (!phone) return true; // Si no se proporciona, se considera válido
+  const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,10}$/;
+  return phoneRegex.test(phone);
+};
+
 // Registrar usuario
 const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, confirmPassword, phone } = req.body;
 
+    // Validar que todos los campos requeridos estén presentes
+    if (!name || !email || !password || !confirmPassword) {
+      return res.status(400).json({ 
+        message: 'Todos los campos obligatorios deben ser completados (nombre, email, contraseña y confirmación)' 
+      });
+    }
+
+    // Validar que la contraseña y la confirmación coincidan
+    if (password !== confirmPassword) {
+      return res.status(400).json({ 
+        message: 'La contraseña y la confirmación no coinciden' 
+      });
+    }
+    
     // Validar email y contraseña
     if (!validateEmail(email)) {
       return res.status(400).json({ message: 'El correo no es válido' });
     }
+    
     if (!validatePassword(password)) {
       return res.status(400).json({
         message: 'La contraseña debe tener al menos 6 caracteres, una letra mayúscula, un número y un carácter especial',
+      });
+    }
+    
+    // Validar número de teléfono si se proporciona
+    if (phone && !validatePhone(phone)) {
+      return res.status(400).json({ 
+        message: 'El formato del número de teléfono no es válido' 
       });
     }
 
@@ -41,6 +70,7 @@ const registerUser = async (req, res, next) => {
       email,
       password,
       displayName: name,
+      phoneNumber: phone || null,
     });
 
     // Encriptar la contraseña para PostgreSQL
@@ -51,6 +81,7 @@ const registerUser = async (req, res, next) => {
       id: firebaseUser.uid, // Usar el UID de Firebase como ID
       name,
       email,
+      phone,
       password: hashedPassword,
     });
 
@@ -60,6 +91,7 @@ const registerUser = async (req, res, next) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         createdAt: user.createdAt,
       },
@@ -70,55 +102,82 @@ const registerUser = async (req, res, next) => {
   }
 };
 
-// Iniciar sesión
+// Iniciar sesión - Método mejorado con manejo de errores detallado
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    let firebaseUser;
-    try {
-      // Verificar credenciales en Firebase Authentication
-      firebaseUser = await admin.auth().getUserByEmail(email);
-    } catch (error) {
-      if (error.errorInfo && error.errorInfo.code === 'auth/user-not-found') {
-        return res.status(404).json({ message: 'Usuario no encontrado en Firebase' });
-      }
-      throw error; // Lanzar otros errores
+    // Validaciones básicas
+    if (!email || !password) {
+      return res.status(400).json({ 
+        message: 'Correo y contraseña son obligatorios' 
+      });
     }
 
-    // Buscar al usuario en PostgreSQL
-    const user = await User.findOne({ where: { id: firebaseUser.uid } });
+    // 1. Primero buscar el usuario por email en nuestra base de datos PostgreSQL
+    // Esto evita tener que usar el método getUserByEmail de Firebase que podría estar causando el error
+    const user = await User.findOne({ 
+      where: { email },
+      attributes: ['id', 'name', 'email', 'password', 'role']
+    });
+
     if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado en la base de datos' });
+      console.log(`Usuario no encontrado para email: ${email}`);
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Verificar contraseña
+    // 2. Verificar contraseña usando bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Contraseña incorrecta' });
+      console.log(`Contraseña incorrecta para usuario: ${email}`);
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    // Generar un token JWT
+    // 3. Si llegamos aquí, el usuario existe y la contraseña es correcta
+    // Generar JWT desde nuestro backend sin depender de Firebase para esto
     const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Duración del token
+      { 
+        id: user.id, 
+        email: user.email,
+        role: user.role,
+        name: user.name
+      },
+      process.env.JWT_SECRET || 'tu_clave_secreta_temporal',
+      { expiresIn: '24h' }
     );
-    
 
-    res.json({
+    // Registro de actividad de login exitoso
+    console.log(`Login exitoso: ${user.email} (${user.role})`);
+
+    // 4. Respuesta exitosa
+    return res.status(200).json({
       message: 'Inicio de sesión exitoso',
       token,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-      },
+        role: user.role
+      }
     });
+
   } catch (error) {
-    console.error('Error al iniciar sesión:', error);
-    next(error); // Usar middleware global para manejo de errores
+    console.error('Error detallado durante el login:', error);
+    
+    // Manejar específicamente errores de Firebase Auth
+    if (error.code && error.code.startsWith('auth/')) {
+      return res.status(400).json({
+        message: 'Error de autenticación',
+        details: error.message,
+        code: error.code
+      });
+    }
+    
+    // Error general
+    return res.status(500).json({
+      message: 'Error al iniciar sesión',
+      details: error.message 
+    });
   }
 };
 

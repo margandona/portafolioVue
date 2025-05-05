@@ -1,5 +1,7 @@
-const admin = require('../config/firebase');
+const User = require('../models/user');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const admin = require('../config/firebase'); 
 
 // Validar email
 const validateEmail = (email) => {
@@ -13,115 +15,162 @@ const validatePassword = (password) => {
   return passwordRegex.test(password);
 };
 
+// Validar teléfono (opcional)
+const validatePhone = (phone) => {
+  if (!phone) return true;
+  const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,10}$/;
+  return phoneRegex.test(phone);
+};
+
 // Registrar usuario
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, confirmPassword, phone } = req.body;
 
     // Validaciones
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Todos los campos son obligatorios' });
-    }
-
-    if (!validateEmail(email)) {
-      return res.status(400).json({ message: 'El correo electrónico no es válido' });
-    }
-
-    if (!validatePassword(password)) {
-      return res.status(400).json({
-        message: 'La contraseña debe tener al menos 6 caracteres, una letra mayúscula, un número y un carácter especial',
+    if (!name || !email || !password || !confirmPassword) {
+      return res.status(400).json({ 
+        message: 'Todos los campos obligatorios deben ser completados' 
       });
     }
 
-    // Verificar si el usuario ya existe
-    try {
-      const userRecord = await admin.auth().getUserByEmail(email);
-      if (userRecord) {
-        return res.status(400).json({ message: 'El correo electrónico ya está registrado' });
-      }
-    } catch (error) {
-      // Si no encuentra el usuario, continuamos con el registro
-      if (error.code !== 'auth/user-not-found') {
-        throw error;
-      }
+    if (password !== confirmPassword) {
+      return res.status(400).json({ 
+        message: 'La contraseña y la confirmación no coinciden' 
+      });
+    }
+    
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'El correo no es válido' });
+    }
+    
+    if (!validatePassword(password)) {
+      return res.status(400).json({
+        message: 'La contraseña debe cumplir los requisitos de seguridad'
+      });
+    }
+    
+    if (phone && !validatePhone(phone)) {
+      return res.status(400).json({ 
+        message: 'El formato del número de teléfono no es válido' 
+      });
+    }
+
+    // Verificar si el email ya está registrado
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'El correo ya está registrado' });
     }
 
     // Crear usuario en Firebase Authentication
-    const userRecord = await admin.auth().createUser({
+    const firebaseUser = await admin.auth().createUser({
       email,
       password,
       displayName: name,
+      phoneNumber: phone || null,
     });
 
-    // Guardar información adicional en Firestore
-    await admin.firestore().collection('users').doc(userRecord.uid).set({
+    // Encriptar la contraseña para almacenar
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Registrar usuario en Firestore
+    const user = await User.create({
+      id: firebaseUser.uid,
       name,
       email,
-      role: 'student', // Rol por defecto
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      phone,
+      password: hashedPassword,
+      role: 'student'
     });
 
     res.status(201).json({
       message: 'Usuario registrado exitosamente',
       user: {
-        id: userRecord.uid,
-        name,
-        email,
-        role: 'student',
-      },
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
     });
   } catch (error) {
     console.error('Error al registrar usuario:', error);
-    res.status(500).json({ message: 'Error al registrar usuario', details: error.message });
+    res.status(500).json({ 
+      message: 'Error al registrar usuario', 
+      details: error.message 
+    });
   }
 };
 
-// Iniciar sesión
-const loginUser = async (req, res) => {
+// Iniciar sesión - Método mejorado con manejo de errores detallado
+const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    // Validaciones básicas
     if (!email || !password) {
-      return res.status(400).json({ message: 'El correo y la contraseña son obligatorios' });
+      return res.status(400).json({ 
+        message: 'Correo y contraseña son obligatorios' 
+      });
     }
 
-    // Firebase Authentication no proporciona un método directo para iniciar sesión
-    // En una aplicación real, el cliente usaría Firebase Auth directamente
-    // Aquí simulamos la validación de credenciales para la API
-    try {
-      const userRecord = await admin.auth().getUserByEmail(email);
-      
-      // Obtener información adicional desde Firestore
-      const userDoc = await admin.firestore().collection('users').doc(userRecord.uid).get();
-      
-      if (!userDoc.exists) {
-        return res.status(404).json({ message: 'Usuario no encontrado en la base de datos' });
-      }
-      
-      const userData = userDoc.data();
-      
-      // Crear un token personalizado
-      const token = await admin.auth().createCustomToken(userRecord.uid);
-      
-      res.status(200).json({
-        message: 'Inicio de sesión exitoso',
-        token,
-        user: {
-          id: userRecord.uid,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role || 'student',
-        },
-      });
-    } catch (error) {
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        return res.status(401).json({ message: 'Credenciales inválidas' });
-      }
-      throw error;
+    // 1. Primero buscar el usuario por email en nuestra base de datos PostgreSQL
+    const user = await User.findOne({ 
+      where: { email },
+      attributes: ['id', 'name', 'email', 'password', 'role']
+    });
+
+    if (!user) {
+      console.log(`Usuario no encontrado para email: ${email}`);
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     }
+
+    // 2. Verificar contraseña usando bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log(`Contraseña incorrecta para usuario: ${email}`);
+      return res.status(401).json({ message: 'Credenciales inválidas' });
+    }
+
+    // 3. Si llegamos aquí, el usuario existe y la contraseña es correcta
+    // Use a consistent JWT_SECRET
+    const JWT_SECRET = process.env.JWT_SECRET || 'mi_super_secreto';
+    console.log('Generando token con clave secreta:', JWT_SECRET);
+    
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        email: user.email,
+        role: user.role,
+        name: user.name
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Registro de actividad de login exitoso
+    console.log(`Login exitoso: ${user.email} (${user.role})`);
+
+    // 4. Respuesta exitosa
+    return res.status(200).json({
+      message: 'Inicio de sesión exitoso',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
   } catch (error) {
-    console.error('Error al iniciar sesión:', error);
-    res.status(500).json({ message: 'Error al iniciar sesión', details: error.message });
+    console.error('Error detallado durante el login:', error);
+    
+    // Error general
+    return res.status(500).json({
+      message: 'Error al iniciar sesión',
+      details: error.message 
+    });
   }
 };
 
@@ -153,4 +202,8 @@ const sendPasswordResetEmail = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, sendPasswordResetEmail };
+module.exports = { 
+  registerUser, 
+  loginUser, 
+  sendPasswordResetEmail 
+};

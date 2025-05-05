@@ -20,7 +20,8 @@
     "express": "^4.21.2",
     "firebase-admin": "^11.11.1",
     "firebase-functions": "^4.9.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.0",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "eslint": "^8.15.0",

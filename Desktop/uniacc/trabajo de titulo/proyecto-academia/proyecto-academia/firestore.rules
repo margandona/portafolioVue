@@ -1,0 +1,156 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ========== OPTIMIZATION 1: Cache common data in request.auth.token ==========
+    // NOTE: You must implement these custom claims on the backend with Firebase Admin SDK
+    function getUserRole() {
+      // Get role from Auth custom claims (if implemented) or fallback to database
+      return request.auth.token.role != null 
+        ? request.auth.token.role 
+        : get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // ========== OPTIMIZATION 2: More efficient permission checks ==========
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function hasRole(role) {
+      return isSignedIn() && getUserRole() == role;
+    }
+    
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    
+    function isTeacher() {
+      return hasRole('teacher');
+    }
+    
+    function isStudent() {
+      return hasRole('student');
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isCourseTeacher(courseId) {
+      let courseData = get(/databases/$(database)/documents/courses/$(courseId)).data;
+      return isSignedIn() && 
+        (courseData.teacher_id == request.auth.uid || courseData.instructor_id == request.auth.uid);
+    }
+    
+    // ========== OPTIMIZATION 3: Resource-based batched permission checks ==========
+    
+    // Reglas para la colección users
+    match /users/{userId} {
+      // Los usuarios pueden leer y escribir sus propios datos
+      // Los administradores pueden leer y escribir datos de cualquier usuario
+      allow read: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      
+      // ========== OPTIMIZATION 4: User data caching ==========
+      // Create subcollections that can be read by specific roles without extra permission checks
+      match /public_profile/{docId} {
+        allow read: if isSignedIn();
+      }
+      
+      match /teacher_data/{docId} {
+        allow read: if isTeacher() || isAdmin();
+      }
+    }
+    
+    // Reglas para la colección courses
+    match /courses/{courseId} {
+      // OPTIMIZATION: Separate list vs get operations permissions
+      allow get: if true; // Anyone can view individual courses (even without login)
+      allow list: if isSignedIn(); // Only signed in users can list all courses
+      allow create: if isTeacher() || isAdmin();
+      allow update, delete: if isCourseTeacher(courseId) || isAdmin();
+      
+      // ========== OPTIMIZATION 5: Course data caching ==========
+      // Subcollection for course data that's public or restricted
+      match /public_data/{docId} {
+        allow read: if true; // Anyone can read public course data
+      }
+      
+      // Enrollments specific to this course for faster queries
+      match /enrollments/{enrollmentId} {
+        allow read: if isStudent() && resource.data.user_id == request.auth.uid;
+        allow read: if isTeacher() && isCourseTeacher(courseId);
+        allow read: if isAdmin();
+        allow create: if (isStudent() && request.resource.data.user_id == request.auth.uid) || isAdmin();
+        allow update, delete: if isAdmin();
+      }
+      
+      // Course modules and lessons with optimized access
+      match /modules/{moduleId} {
+        allow read: if isSignedIn();
+        allow write: if isCourseTeacher(courseId) || isAdmin();
+        
+        match /lessons/{lessonId} {
+          allow read: if isSignedIn();
+          allow write: if isCourseTeacher(courseId) || isAdmin();
+        }
+      }
+    }
+    
+    // Reglas para la colección enrollments (global)
+    match /enrollments/{enrollmentId} {
+      allow read: if isStudent() && resource.data.user_id == request.auth.uid;
+      allow read: if isTeacher() && isCourseTeacher(resource.data.course_id);
+      allow read: if isAdmin();
+      
+      allow create: if (isStudent() && request.resource.data.user_id == request.auth.uid) || isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Reglas para la colección evaluations
+    match /evaluations/{evaluationId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if resource != null && isTeacher() && 
+                                     isCourseTeacher(resource.data.course_id);
+      allow create, update, delete: if request.resource != null && isTeacher() && 
+                                     isCourseTeacher(request.resource.data.course_id);
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ========== OPTIMIZATION 6: More efficient responses collection rules ==========
+    match /responses/{responseId} {
+      // Optimization: Store course_id directly in response to avoid nested gets
+      allow read: if isStudent() && resource.data.user_id == request.auth.uid;
+      allow read: if isTeacher() && resource.data.course_id != null && 
+                  isCourseTeacher(resource.data.course_id);
+      allow read: if isAdmin();
+      
+      allow create: if isStudent() && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Reports with improved caching of authorization data
+    match /reports/{reportId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // ========== OPTIMIZATION 7: Cache collections for commonly accessed data ==========
+    match /app_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /categories/{categoryId} {
+      allow read: if true; 
+      allow write: if isAdmin();
+    }
+    
+    // Regla predeterminada: denegar todo acceso
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

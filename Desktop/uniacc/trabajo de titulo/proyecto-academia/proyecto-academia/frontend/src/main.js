@@ -1,54 +1,53 @@
-// main.js
-import { createApp } from 'vue';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import axios from 'axios';
-import './assets/styles/variables.scss';
-import './assets/styles/global.scss';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import '@fortawesome/fontawesome-free/css/all.css';
-import '@fortawesome/fontawesome-free/js/all.js';
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import store from './store'
 
+// Vuetify
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import '@mdi/font/css/materialdesignicons.css'
 
-// Configuración global de Axios
-axios.defaults.baseURL = 'http://localhost:3000'; // URL base del backend
-axios.defaults.headers.post['Content-Type'] = 'application/json';
-
-// Interceptores de solicitudes para incluir el token dinámicamente
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+// Create Vuetify instance with all components
+const vuetify = createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: 'light',
+    themes: {
+      light: {
+        colors: {
+          primary: '#2E8B57',
+          secondary: '#424242',
+          accent: '#82B1FF',
+          error: '#FF5252',
+          info: '#2196F3',
+          success: '#4CAF50',
+          warning: '#FFC107',
+        },
+      },
+    },
   },
-  (error) => Promise.reject(error)
-);
+  // Ensure icons are properly configured
+  icons: {
+    defaultSet: 'mdi',
+  },
+})
 
-// Interceptores de respuesta para manejar errores globalmente
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      store.commit('CLEAR_USER'); // Limpiar usuario en Vuex
-      router.push('/login'); // Redirigir al inicio de sesión
-    }
-    return Promise.reject(error);
-  }
-);
+// Create and mount app with plugins
+const app = createApp(App)
 
-// Crear instancia de la aplicación
-const app = createApp(App);
+// Use plugins
+app.use(store)
+app.use(router)
+app.use(vuetify)
 
-// Agregar Axios a globalProperties para acceso global (opcional)
-app.config.globalProperties.$axios = axios;
+// Mount the application
+app.mount('#app')
 
-// Usar Vuex Store y Vue Router
-app.use(store);
-app.use(router);
-
-// Montar la aplicación
-app.mount('#app');
+// Global error handler
+app.config.errorHandler = (err) => {
+  console.error('Error global:', err)
+}

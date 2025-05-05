@@ -1,5 +1,5 @@
 const express = require('express');
-const { isAuthenticated, isAdmin, isTeacher, isStudent } = require('../middlewares/authMiddleware');
+const { verifyToken, checkRole, isTeacher, isStudent } = require('../middlewares/authMiddleware');
 const router = express.Router();
 
 /**
@@ -7,7 +7,7 @@ const router = express.Router();
  * @desc Ruta protegida para probar autenticación
  * @access Privado (requiere autenticación)
  */
-router.get('/', isAuthenticated, (req, res) => {
+router.get('/', verifyToken, (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Acceso autorizado a ruta protegida',
@@ -24,7 +24,7 @@ router.get('/', isAuthenticated, (req, res) => {
  * @desc Ruta protegida para administradores
  * @access Privado (solo administradores)
  */
-router.get('/admin', isAuthenticated, isAdmin, (req, res) => {
+router.get('/admin', verifyToken, checkRole(['admin']), (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Acceso autorizado para administradores'
@@ -36,7 +36,7 @@ router.get('/admin', isAuthenticated, isAdmin, (req, res) => {
  * @desc Ruta protegida para profesores
  * @access Privado (solo profesores y administradores)
  */
-router.get('/teacher', isAuthenticated, isTeacher, (req, res) => {
+router.get('/teacher', verifyToken, isTeacher, (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Acceso autorizado para profesores'
@@ -48,7 +48,7 @@ router.get('/teacher', isAuthenticated, isTeacher, (req, res) => {
  * @desc Ruta protegida para estudiantes
  * @access Privado (todos los usuarios autenticados pueden acceder)
  */
-router.get('/student', isAuthenticated, isStudent, (req, res) => {
+router.get('/student', verifyToken, isStudent, (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Acceso autorizado para estudiantes'

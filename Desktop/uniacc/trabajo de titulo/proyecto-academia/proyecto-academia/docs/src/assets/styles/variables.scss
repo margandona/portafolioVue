@@ -1,0 +1,29 @@
+// **Paleta de colores**
+$color-primary: #2E8B57; // Verde Esmeralda
+$color-secondary: #2A3B5F; // Azul Marino
+$color-accent: #FFA500; // Naranja Brillante
+$color-background: #F5F5F5; // Gris Claro
+$color-text: #333333; // Gris Oscuro
+$color-decoration: #6A0DAD; // Morado Profundo
+$color-text-dark: #FFFFFF; // Blanco para textos oscuros
+
+// **Tipografías**
+$font-primary: 'Roboto', sans-serif; // Texto general
+$font-secondary: 'Playfair Display', serif; // Títulos
+
+// **Tamaños de fuente**
+$font-size-h1: 32px;
+$font-size-h2: 28px;
+$font-size-h3: 20px;
+$font-size-text: 16px;
+$font-size-small: 14px;
+$font-size-button: 16px;
+
+// **Espaciados**
+$line-height-text: 1.6;
+$line-height-title: 1.2;
+
+// **Otros estilos globales**
+$border-radius: 8px;
+$transition-speed: 0.3s;
+$box-shadow-default: 0px 4px 8px rgba(0, 0, 0, 0.1);

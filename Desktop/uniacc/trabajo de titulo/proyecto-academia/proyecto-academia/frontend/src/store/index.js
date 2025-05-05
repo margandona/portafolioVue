@@ -1,175 +1,150 @@
-import { createStore } from "vuex";
-import axios from "axios";
+import { createStore } from 'vuex';
+import { authService, userService } from '@/api';
+import coursesModule from './modules/courses';
+import usersModule from './modules/users';
 
-const store = createStore({
+export default createStore({
   state: {
-    user: {
-      id: null,
-      name: "",
-      role: "",
-      token: localStorage.getItem("token") || null,
-    },
-    courses: [],
-    enrolledCourses: [],
-    evaluations: [],
-    students: [],
-    users: [],
-    isLoading: false,
-    errorMessage: null,
+    // Estado de autenticación
+    token: localStorage.getItem('token') || null,
+    isAuthenticated: !!localStorage.getItem('token'),
+    
+    // Información de usuario
+    user: null,
+    
+    // Estado de carga y errores
+    loading: false,
+    error: null
   },
+  
   getters: {
-    isAuthenticated: (state) => !!state.user.token,
-    userRole: (state) => state.user.role,
+    // Autenticación
+    isAuthenticated: (state) => state.isAuthenticated,
+    getToken: (state) => state.token,
+    
+    // Usuario
     getUser: (state) => state.user,
-    getToken: (state) => state.user.token, // Getter centralizado para el token
-    getCourses: (state) => state.courses,
-    getEnrolledCourses: (state) => state.enrolledCourses,
-    getEvaluations: (state) => state.evaluations,
-    getStudents: (state) => state.students,
-    getUsers: (state) => state.users,
-    isLoading: (state) => state.isLoading,
-    getErrorMessage: (state) => state.errorMessage,
+    userRole: (state) => state.user ? state.user.role : null,
+    
+    // Estados de UI
+    isLoading: (state) => state.loading,
+    getError: (state) => state.error
   },
+  
   mutations: {
+    // Autenticación
+    SET_AUTH(state, { token, user }) {
+      state.token = token;
+      state.user = user;
+      state.isAuthenticated = !!token;
+      
+      if (token) {
+        localStorage.setItem('token', token);
+        if (user && user.name) {
+          localStorage.setItem('name', user.name);
+        }
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('name');
+      }
+    },
+    
+    // Usuario
     SET_USER(state, user) {
       state.user = user;
     },
-    SET_TOKEN(state, token) {
-      state.user.token = token;
-      localStorage.setItem("token", token);
+    
+    // Estados de UI
+    SET_LOADING(state, status) {
+      state.loading = status;
     },
-    CLEAR_USER(state) {
-      state.user = { id: null, name: "", role: "", token: null };
-      localStorage.removeItem("token");
-    },
-    SET_COURSES(state, courses) {
-      state.courses = courses;
-    },
-    SET_ENROLLED_COURSES(state, enrolledCourses) {
-      state.enrolledCourses = enrolledCourses;
-    },
-    SET_EVALUATIONS(state, evaluations) {
-      state.evaluations = evaluations;
-    },
-    SET_STUDENTS(state, students) {
-      state.students = students;
-    },
-    SET_USERS(state, users) {
-      state.users = users;
-    },
-    SET_LOADING(state, isLoading) {
-      state.isLoading = isLoading;
-    },
-    SET_ERROR(state, errorMessage) {
-      state.errorMessage = errorMessage;
+    SET_ERROR(state, error) {
+      state.error = error;
     },
     CLEAR_ERROR(state) {
-      state.errorMessage = null;
-    },
+      state.error = null;
+    }
   },
+  
   actions: {
-    async apiRequest({ commit, getters }, { method, url, data = null }) {
+    // Autenticación
+    async login({ commit }, credentials) {
+      commit('SET_LOADING', true);
+      commit('CLEAR_ERROR');
       try {
-        commit("SET_LOADING", true);
-        const response = await axios({
-          method,
-          url,
-          data,
-          headers: { Authorization: `Bearer ${getters.getToken}` },
+        const response = await authService.login(credentials);
+        commit('SET_AUTH', {
+          token: response.data.token,
+          user: response.data.user
         });
         return response.data;
       } catch (error) {
-        const message =
-          error.response?.data?.message || "Error en la solicitud.";
-        commit("SET_ERROR", message);
-        throw new Error(message);
+        commit('SET_ERROR', error.response?.data?.message || 'Error al iniciar sesión');
+        throw error;
       } finally {
-        commit("SET_LOADING", false);
+        commit('SET_LOADING', false);
       }
     },
-    async login({ commit }, credentials) {
+    
+    async register({ commit }, userData) {
+      commit('SET_LOADING', true);
+      commit('CLEAR_ERROR');
       try {
-        const data = await this.dispatch("apiRequest", {
-          method: "post",
-          url: "/api/auth/login",
-          data: credentials,
+        const response = await authService.register(userData);
+        commit('SET_AUTH', {
+          token: response.data.token,
+          user: response.data.user
         });
-        commit("SET_TOKEN", data.token);
-        commit("SET_USER", data.user);
+        return response.data;
       } catch (error) {
-        console.error("Error en el inicio de sesión:", error);
+        commit('SET_ERROR', error.response?.data?.message || 'Error al registrarse');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
-    async logout({ commit }) {
-      commit("CLEAR_USER");
+    
+    async logout({ commit, dispatch }) {
+      commit('SET_AUTH', { token: null, user: null });
+      // Restablecer el estado de cursos al cerrar sesión
+      dispatch('courses/resetCourseState');
+      return true;
     },
-    async fetchCourses({ commit }) {
+    
+    // Usuario
+    async fetchUserProfile({ commit }) {
+      commit('SET_LOADING', true);
+      commit('CLEAR_ERROR');
       try {
-        const data = await this.dispatch("apiRequest", {
-          method: "get",
-          url: "/api/courses",
-        });
-        commit("SET_COURSES", data);
+        const response = await userService.getProfile();
+        commit('SET_USER', response.data);
+        return response.data;
       } catch (error) {
-        console.error("Error al cargar cursos:", error);
+        commit('SET_ERROR', error.response?.data?.message || 'Error al cargar perfil');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
-    async fetchEnrolledCourses({ commit }) {
+    
+    async updateProfile({ commit }, userData) {
+      commit('SET_LOADING', true);
+      commit('CLEAR_ERROR');
       try {
-        const data = await this.dispatch("apiRequest", {
-          method: "get",
-          url: "/api/courses/enrolled",
-        });
-        commit("SET_ENROLLED_COURSES", data);
+        const response = await userService.updateProfile(userData);
+        commit('SET_USER', response.data);
+        return response.data;
       } catch (error) {
-        console.error("Error al cargar cursos inscritos:", error);
+        commit('SET_ERROR', error.response?.data?.message || 'Error al actualizar perfil');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
-    },
-    async fetchEvaluations({ commit }, courseId) {
-      try {
-        const data = await this.dispatch("apiRequest", {
-          method: "get",
-          url: `/api/evaluations/course/${courseId}`,
-        });
-        commit("SET_EVALUATIONS", data.data || []);
-      } catch (error) {
-        console.error("Error al cargar evaluaciones:", error);
-      }
-    },
-    async fetchStudents({ commit }, courseId) {
-      try {
-        const data = await this.dispatch("apiRequest", {
-          method: "get",
-          url: `/api/courses/${courseId}/students`,
-        });
-        commit("SET_STUDENTS", data || []);
-      } catch (error) {
-        console.error("Error al cargar estudiantes:", error);
-      }
-    },
-    async fetchUsers({ commit }) {
-      try {
-        const data = await this.dispatch("apiRequest", {
-          method: "get",
-          url: "/api/users",
-        });
-        commit("SET_USERS", data);
-      } catch (error) {
-        console.error("Error al cargar usuarios:", error);
-      }
-    },
-    async deleteUser({ dispatch }, userId) {
-      try {
-        await this.dispatch("apiRequest", {
-          method: "delete",
-          url: `/api/users/${userId}`,
-        });
-        await dispatch("fetchUsers");
-      } catch (error) {
-        console.error("Error al eliminar usuario:", error);
-      }
-    },
+    }
   },
+  
+  modules: {
+    courses: coursesModule,
+    users: usersModule
+  }
 });
-
-export default store;

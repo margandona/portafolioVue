@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-container">
       <h1>Iniciar Sesión</h1>
-      <form @submit.prevent="handleLogin" aria-labelledby="login-title">
+      <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="email">Correo Electrónico</label>
           <input
@@ -11,51 +11,54 @@
             class="form-control"
             v-model="email"
             required
-            placeholder="Ingrese su correo"
-            aria-required="true"
-            aria-label="Correo Electrónico"
+            placeholder="Ingrese su correo electrónico"
           />
         </div>
+        
         <div class="form-group">
           <label for="password">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            class="form-control"
-            v-model="password"
-            required
-            placeholder="Ingrese su contraseña"
-            aria-required="true"
-            aria-label="Contraseña"
-          />
+          <div class="password-input">
+            <input
+              :type="showPassword ? 'text' : 'password'"
+              id="password"
+              class="form-control"
+              v-model="password"
+              required
+              placeholder="Ingrese su contraseña"
+            />
+            <button 
+              type="button" 
+              class="toggle-password"
+              @click="showPassword = !showPassword"
+            >
+              {{ showPassword ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
         </div>
+        
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
+        
         <button
           type="submit"
           class="btn btn-primary"
           :disabled="isLoading"
-          :aria-busy="isLoading"
         >
-          {{ isLoading ? "Cargando..." : "Entrar" }}
+          {{ isLoading ? "Iniciando sesión..." : "Iniciar Sesión" }}
         </button>
-        <p class="extra-links">
-          <router-link to="/forgot-password" class="forgot-password-link">
-            ¿Olvidaste tu contraseña?
-          </router-link>
-        </p>
-        <p class="register-link">
-          ¿No tienes una cuenta?
-          <router-link to="/register">Regístrate aquí</router-link>
-        </p>
       </form>
+      
+      <div class="links">
+        <router-link to="/forgot-password">¿Olvidaste tu contraseña?</router-link>
+        <router-link to="/register">¿No tienes una cuenta? Regístrate aquí</router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
   name: "LoginView",
@@ -64,140 +67,180 @@ export default {
       email: "",
       password: "",
       errorMessage: "",
-      isLoading: false,
+      showPassword: false,
     };
   },
+  computed: {
+    ...mapGetters(['isLoading', 'getError', 'isAuthenticated']),
+    isLoading() {
+      return this.isLoading;
+    }
+  },
   methods: {
+    ...mapActions(['login']),
     async handleLogin() {
-      this.isLoading = true;
       this.errorMessage = "";
+      
       try {
-        const response = await axios.post("http://localhost:3000/api/auth/login", {
+        await this.login({
           email: this.email,
-          password: this.password,
+          password: this.password
         });
-
-        const token = response.data.token;
-        localStorage.setItem("token", token); // Almacenar token
-
-        alert("Inicio de sesión exitoso");
-        this.$router.push("/dashboard"); // Redirigir al dashboard
+        
+        // Redirect to dashboard after successful login
+        this.$router.push('/dashboard');
       } catch (error) {
-        if (error.response?.status === 404) {
-          this.errorMessage = "El usuario no existe. Verifique sus datos.";
-        } else if (error.response?.status === 401) {
-          this.errorMessage = "Contraseña incorrecta. Inténtelo de nuevo.";
+        console.error("Error en el inicio de sesión:", error);
+        
+        // Display appropriate error message
+        if (error.response?.status === 401) {
+          this.errorMessage = "Credenciales incorrectas. Por favor, intenta nuevamente.";
+        } else if (error.response?.status === 404) {
+          this.errorMessage = "Usuario no encontrado. Verifica tu correo electrónico.";
         } else {
-          this.errorMessage = "Error al iniciar sesión. Inténtelo más tarde.";
+          this.errorMessage = this.getError || "Error al iniciar sesión. Inténtalo nuevamente.";
         }
-      } finally {
-        this.isLoading = false;
       }
     },
   },
+  // If already authenticated, redirect to dashboard
+  created() {
+    if (this.isAuthenticated) {
+      this.$router.push('/dashboard');
+    }
+  }
 };
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .login-page {
   background-color: #f5f5f5;
-  min-height: 100vh;
+  min-height: calc(100vh - 140px);
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 40px 0;
 }
 
 .login-container {
-  padding: 30px;
-  max-width: 400px;
   width: 100%;
+  max-width: 400px;
   background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 30px;
 }
 
 h1 {
   color: #2a3b5f;
   font-family: "Playfair Display", serif;
   font-size: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  text-align: center;
 }
 
 .form-group {
-  margin-bottom: 15px;
-  text-align: left;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #555;
 }
 
 .form-control {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   font-size: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s;
 }
 
 .form-control:focus {
   border-color: #2e8b57;
   outline: none;
-  box-shadow: 0px 0px 5px rgba(46, 139, 87, 0.5);
+  box-shadow: 0 0 0 2px rgba(46, 139, 87, 0.2);
 }
 
-.alert {
-  margin-top: 20px;
-  color: #dc3545;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 10px;
-  border-radius: 5px;
+.password-input {
+  position: relative;
+  display: flex;
 }
 
-.btn {
-  font-family: "Roboto", sans-serif;
-  font-size: 16px;
-  background-color: #2e8b57;
-  color: #ffffff;
+.password-input input {
+  flex: 1;
+  padding-right: 80px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  padding: 0 15px;
+  background: none;
   border: none;
-  border-radius: 8px;
-  padding: 10px 15px;
+  color: #2E8B57;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.btn:hover {
-  background-color: #3aa870;
-}
-
-.extra-links {
-  margin-top: 20px;
-}
-
-.forgot-password-link {
-  color: #007bff;
-  text-decoration: underline;
-}
-
-.forgot-password-link:hover {
-  color: #0056b3;
-}
-
-.register-link {
-  margin-top: 10px;
   font-size: 14px;
 }
 
-.register-link a {
-  color: #2a3b5f;
+.btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  background-color: #2e8b57;
+  color: white;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #3aa870;
+}
+
+.btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.alert {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f8d7da;
+  color: #dc3545;
+  border: 1px solid #f5c6cb;
+}
+
+.links {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.links a {
+  color: #2E8B57;
+  text-decoration: none;
+}
+
+.links a:hover {
   text-decoration: underline;
 }
 
-.register-link a:hover {
-  color: #2e8b57;
+@media (max-width: 576px) {
+  .login-container {
+    padding: 20px;
+    margin: 0 15px;
+  }
 }
 </style>

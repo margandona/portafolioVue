@@ -1,0 +1,181 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Users API",
+  "dateExported": "2023-11-15T10:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Usuarios",
+      "id": "users-folder",
+      "description": "Operaciones con usuarios"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Listar Todos los Usuarios",
+      "id": "get-all-users",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/users",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Obtener Usuario por ID",
+      "id": "get-user-by-id",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/users/{{user_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Obtener Perfil Propio",
+      "id": "get-own-profile",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/users/me",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Buscar Usuario",
+      "id": "search-user",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/users/search",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "email",
+          "value": "test@example.com"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Crear Usuario",
+      "id": "create-user",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/users",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Nuevo Usuario\",\n  \"email\": \"nuevo@example.com\",\n  \"password\": \"Password1!\",\n  \"role\": \"student\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Usuario",
+      "id": "update-user",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/users/{{user_id}}",
+      "method": "PUT",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Nombre Actualizado\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Eliminar Usuario",
+      "id": "delete-user",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/users/{{user_id_to_delete}}",
+      "method": "DELETE",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    }
+  ]
+}

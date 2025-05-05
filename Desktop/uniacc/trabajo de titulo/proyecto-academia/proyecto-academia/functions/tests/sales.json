@@ -1,0 +1,489 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Sales API",
+  "dateExported": "2023-11-18T10:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Ventas",
+      "id": "sales-folder",
+      "description": "Operaciones con ventas de cursos"
+    },
+    {
+      "name": "Descuentos",
+      "id": "discount-folder",
+      "description": "Operaciones con descuentos"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Iniciar compra de curso (Estudiante)",
+      "id": "create-sale",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"courseId\": \"{{course_id}}\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        },
+        {
+          "type": "set-env-var",
+          "custom": "json.sale.id",
+          "action": "setto",
+          "value": "sale_id"
+        }
+      ]
+    },
+    {
+      "name": "Listar ventas (Student)",
+      "id": "list-sales-student",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Listar ventas (Teacher)",
+      "id": "list-sales-teacher",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "courseId",
+          "value": "{{course_id}}"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Listar ventas (Admin)",
+      "id": "list-sales-admin",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "status",
+          "value": "pending"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Obtener venta por ID",
+      "id": "get-sale",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales/{{sale_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Procesar Pago",
+      "id": "process-payment",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales/{{sale_id}}/process-payment",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"paymentId\": \"pay_{{$timestamp}}\",\n  \"paymentMethod\": \"credit_card\",\n  \"transactionDetails\": {\n    \"card\": \"XXXX-XXXX-XXXX-1234\",\n    \"amount\": {{course_price}}\n  }\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Estado de Venta",
+      "id": "update-sale-status",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales/{{sale_id}}/status",
+      "method": "PATCH",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"status\": \"completed\",\n  \"message\": \"Venta completada manualmente por admin\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Estadísticas de Ventas (Admin)",
+      "id": "sales-stats",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales/stats",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "startDate",
+          "value": "2023-01-01"
+        },
+        {
+          "name": "endDate",
+          "value": "2023-12-31"
+        },
+        {
+          "name": "includeData",
+          "value": "true"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Simular Webhook de Pago",
+      "id": "payment-webhook",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/sales/webhook",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"event_type\": \"payment.completed\",\n  \"transaction_id\": \"tr_{{$timestamp}}\",\n  \"payment_id\": \"pay_{{$timestamp}}\",\n  \"reference_id\": \"{{sale_id}}\",\n  \"status\": \"successful\",\n  \"amount\": {{course_price}}\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Aplicar Descuento a Curso",
+      "id": "apply-course-discount",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/{{course_id}}/discount",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"discount\": 20,\n  \"discountType\": \"manual\",\n  \"discountName\": \"Descuento de Prueba\",\n  \"discountStartDate\": \"{{$isoDate}}\",\n  \"discountEndDate\": \"{{$isoDateShift 30 d}}\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Eliminar Descuento de Curso",
+      "id": "remove-course-discount",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/{{course_id}}/discount",
+      "method": "DELETE",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Asignar Curso Pago Gratuitamente",
+      "id": "assign-free-access",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/{{course_id}}/assign-free-access",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"userId\": \"{{student_id}}\",\n  \"reason\": \"Asignación de prueba para testing\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        }
+      ]
+    },
+    {
+      "name": "Iniciar compra desde ruta directa",
+      "id": "initiate-purchase",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/{{course_id}}/purchase",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        },
+        {
+          "type": "set-env-var",
+          "custom": "json.saleId",
+          "action": "setto",
+          "value": "sale_id_from_purchase"
+        }
+      ]
+    },
+    {
+      "name": "Pruebas de API de Ventas",
+      "description": "Ejemplos de peticiones HTTP para probar la API de ventas",
+      "baseUrl": "http://localhost:5001/proyecto-academia/us-central1/api",
+      "tests": [
+        {
+          "name": "Crear un curso de pago",
+          "method": "POST",
+          "url": "/courses",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TOKEN}}"
+          },
+          "body": {
+            "title": "Curso de Prueba",
+            "description": "Descripción del curso de prueba",
+            "category": "Programación",
+            "modality": "asynchronized",
+            "duration_days": 30,
+            "sku": "CURSO-001",
+            "netPrice": 20000,
+            "isFree": false
+          }
+        },
+        {
+          "name": "Crear un curso gratuito",
+          "method": "POST",
+          "url": "/courses",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TOKEN}}"
+          },
+          "body": {
+            "title": "Curso Gratuito",
+            "description": "Curso gratuito de prueba",
+            "category": "Bases de datos",
+            "modality": "asynchronized",
+            "duration_days": 15,
+            "isFree": true
+          }
+        },
+        {
+          "name": "Iniciar compra de curso",
+          "method": "POST",
+          "url": "/sales",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "body": {
+            "courseId": "{{COURSE_ID}}"
+          }
+        },
+        {
+          "name": "Obtener ventas pendientes",
+          "method": "GET",
+          "url": "/sales?status=pending",
+          "headers": {
+            "Authorization": "Bearer {{TOKEN}}"
+          }
+        },
+        {
+          "name": "Procesar pago",
+          "method": "POST",
+          "url": "/sales/{{SALE_ID}}/process-payment",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TOKEN}}"
+          },
+          "body": {
+            "paymentId": "pay_1234567890",
+            "paymentMethod": "credit_card",
+            "transactionDetails": {
+              "card": "XXXX-XXXX-XXXX-1234",
+              "amount": 23800
+            }
+          }
+        },
+        {
+          "name": "Obtener venta por ID",
+          "method": "GET",
+          "url": "/sales/{{SALE_ID}}",
+          "headers": {
+            "Authorization": "Bearer {{TOKEN}}"
+          }
+        },
+        {
+          "name": "Aplicar descuento a curso",
+          "method": "POST",
+          "url": "/courses/{{COURSE_ID}}/discount",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TOKEN}}"
+          },
+          "body": {
+            "discount": 20,
+            "discountType": "manual",
+            "discountName": "Descuento de prueba"
+          }
+        },
+        {
+          "name": "Eliminar descuento de curso",
+          "method": "DELETE",
+          "url": "/courses/{{COURSE_ID}}/discount",
+          "headers": {
+            "Authorization": "Bearer {{TOKEN}}"
+          }
+        },
+        {
+          "name": "Asignar curso de pago a un estudiante",
+          "method": "POST",
+          "url": "/courses/{{COURSE_ID}}/assign-free-access",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TOKEN}}"
+          },
+          "body": {
+            "userId": "{{STUDENT_ID}}",
+            "reason": "Asignación de prueba"
+          }
+        }
+      ]
+    }
+  ]
+}

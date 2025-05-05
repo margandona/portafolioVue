@@ -1,0 +1,56 @@
+{
+  "client": "Thunder Client",
+  "environmentName": "Academia API Testing",
+  "dateExported": "2023-11-18T12:00:00.000Z",
+  "version": "1.0",
+  "variables": [
+    {
+      "name": "api_url",
+      "value": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api"
+    },
+    {
+      "name": "student_token",
+      "value": ""
+    },
+    {
+      "name": "teacher_token",
+      "value": ""
+    },
+    {
+      "name": "admin_token",
+      "value": ""
+    },
+    {
+      "name": "course_id",
+      "value": ""
+    },
+    {
+      "name": "student_id",
+      "value": ""
+    },
+    {
+      "name": "teacher_id",
+      "value": ""
+    },
+    {
+      "name": "enrollment_id",
+      "value": ""
+    },
+    {
+      "name": "evaluation_id",
+      "value": ""
+    },
+    {
+      "name": "sale_id",
+      "value": ""
+    },
+    {
+      "name": "course_id_to_delete",
+      "value": ""
+    },
+    {
+      "name": "course_price",
+      "value": "19900"
+    }
+  ]
+}

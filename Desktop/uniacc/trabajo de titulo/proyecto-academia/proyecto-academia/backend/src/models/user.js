@@ -29,6 +29,16 @@ const User = sequelize.define(
         notEmpty: { msg: 'El correo no puede estar vacío' },
       },
     },
+    phone: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      validate: {
+        is: {
+          args: /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,10}$/,
+          msg: 'El formato del número de teléfono no es válido'
+        }
+      }
+    },
     password: {
       type: DataTypes.STRING(255),
       allowNull: false,

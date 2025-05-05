@@ -6,22 +6,52 @@ const Evaluation = require('../models/evaluation');
 
 // Middleware para verificar si el usuario está autenticado
 const isAuthenticated = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ message: 'No se proporcionó un token' });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id);
-    if (!user) {
-      return res.status(401).json({ message: 'Usuario no encontrado' });
+    // Obtener token del header de Authorization
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: 'Token de autenticación no proporcionado' });
     }
-    req.user = user;
-    next();
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Formato de token inválido' });
+    }
+
+    // Verificar token JWT
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'tu_clave_secreta_temporal');
+      
+      // Buscar usuario en base de datos
+      const user = await User.findOne({ where: { id: decoded.id } });
+      if (!user) {
+        return res.status(401).json({ message: 'Usuario no encontrado' });
+      }
+
+      // Adjuntar usuario a la petición para uso posterior
+      req.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      };
+      
+      next();
+    } catch (jwtError) {
+      if (jwtError.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token expirado' });
+      }
+      if (jwtError.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Token inválido' });
+      }
+      throw jwtError;
+    }
   } catch (error) {
-    console.error('Error en la autenticación:', error);
-    return res.status(401).json({ message: 'Token inválido' });
+    console.error('Error en middleware de autenticación:', error);
+    return res.status(500).json({ 
+      message: 'Error en la autenticación',
+      details: error.message
+    });
   }
 };
 

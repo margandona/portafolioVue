@@ -1,0 +1,208 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Evaluations API",
+  "dateExported": "2023-11-15T12:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Evaluaciones",
+      "id": "evaluations-folder",
+      "description": "Operaciones con evaluaciones"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Crear Evaluación",
+      "id": "create-evaluation",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Quiz de Introducción\",\n  \"description\": \"Evaluación sobre los conceptos básicos del curso\",\n  \"courseId\": \"{{course_id}}\",\n  \"questions\": [\n    {\n      \"id\": 1,\n      \"text\": \"¿Cuál es la principal ventaja de usar Firebase?\",\n      \"type\": \"multiple_choice\",\n      \"options\": [\"Escalabilidad\", \"Bajo costo\", \"Facilidad de desarrollo\", \"Todas las anteriores\"],\n      \"correctAnswer\": 3\n    },\n    {\n      \"id\": 2,\n      \"text\": \"¿Firestore es una base de datos relacional?\",\n      \"type\": \"true_false\",\n      \"options\": [\"Verdadero\", \"Falso\"],\n      \"correctAnswer\": 1\n    }\n  ],\n  \"maxScore\": 100,\n  \"published\": true\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        },
+        {
+          "type": "set-env-var",
+          "custom": "json.evaluation.id",
+          "action": "setto",
+          "value": "evaluation_id"
+        }
+      ]
+    },
+    {
+      "name": "Obtener Evaluaciones por Curso",
+      "id": "get-course-evaluations",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations/course/{{course_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Obtener Evaluación por ID",
+      "id": "get-evaluation-by-id",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations/{{evaluation_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Ver Evaluación como Estudiante",
+      "id": "get-evaluation-student",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations/{{evaluation_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        },
+        {
+          "type": "json-query",
+          "custom": "json.questions[0].correctAnswer",
+          "action": "notexists"
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Evaluación",
+      "id": "update-evaluation",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations/{{evaluation_id}}",
+      "method": "PATCH",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Quiz de Introducción (Actualizado)\",\n  \"description\": \"Evaluación actualizada sobre conceptos básicos\",\n  \"published\": true\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Ver Evaluaciones Completadas",
+      "id": "get-completed-evaluations",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations/completed",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Admin Ver Evaluaciones de Usuario",
+      "id": "admin-get-user-evaluations",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations/completed/{{student_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Eliminar Evaluación",
+      "id": "delete-evaluation",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/evaluations/{{evaluation_id}}",
+      "method": "DELETE",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    }
+  ]
+}

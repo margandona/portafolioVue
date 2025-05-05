@@ -2,86 +2,55 @@ const admin = require('../config/firebase');
 const db = admin.firestore();
 const evaluationsCollection = db.collection('evaluations');
 const coursesCollection = db.collection('courses');
-const usersCollection = db.collection('users');
+const enrollmentsCollection = db.collection('enrollments');
 
 /**
  * Modelo para manejar operaciones relacionadas con evaluaciones en Firestore
  */
 class EvaluationModel {
   /**
-   * Obtiene una evaluación por su ID
-   * @param {string} evaluationId - ID de la evaluación
-   * @returns {Promise<Object|null>} Datos de la evaluación o null si no existe
+   * Crear una nueva evaluación
+   * @param {Object} data - Datos de la evaluación
+   * @returns {Promise<Object>} Evaluación creada
    */
-  static async findById(evaluationId) {
+  static async create(data) {
     try {
-      const evaluationDoc = await evaluationsCollection.doc(evaluationId).get();
-      if (!evaluationDoc.exists) return null;
-      
-      return {
-        id: evaluationDoc.id,
-        ...evaluationDoc.data()
-      };
-    } catch (error) {
-      console.error('Error en findById:', error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Obtiene todas las evaluaciones por ID de curso
-   * @param {string} courseId - ID del curso
-   * @returns {Promise<Array>} Lista de evaluaciones
-   */
-  static async findByCourseId(courseId) {
-    try {
-      const snapshot = await evaluationsCollection
-        .where('courseId', '==', courseId)
-        .get();
-      
-      if (snapshot.empty) return [];
-      
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    } catch (error) {
-      console.error('Error en findByCourseId:', error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Crea una nueva evaluación
-   * @param {Object} evaluationData - Datos de la evaluación
-   * @returns {Promise<Object>} La evaluación creada
-   */
-  static async create(evaluationData) {
-    try {
-      // Validar datos básicos
-      if (!evaluationData.title || !evaluationData.courseId || !Array.isArray(evaluationData.questions)) {
-        throw new Error('Faltan campos obligatorios: título, courseId o preguntas');
+      // Validar campos requeridos
+      if (!data.title) throw new Error('El título de la evaluación es obligatorio');
+      if (!data.courseId) throw new Error('El ID del curso es obligatorio');
+      if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
+        throw new Error('Se requiere al menos una pregunta en la evaluación');
       }
       
-      // Verificar que el curso existe
-      const courseDoc = await coursesCollection.doc(evaluationData.courseId).get();
+      // Verificar que el curso exista
+      const courseDoc = await coursesCollection.doc(data.courseId).get();
       if (!courseDoc.exists) {
-        throw new Error('El curso asociado no existe');
+        throw new Error('El curso especificado no existe');
       }
       
-      // Añadir timestamps
-      const dataWithTimestamps = {
-        ...evaluationData,
+      // Preparar datos
+      const evaluationData = {
+        title: data.title,
+        description: data.description || '',
+        questions: data.questions,
+        courseId: data.courseId,
+        maxScore: data.maxScore || data.questions.length * 10, // Puntaje por defecto
+        passingScore: data.passingScore || Math.floor(data.questions.length * 6), // 60% aprobación
+        timeLimit: data.timeLimit || null, // Tiempo límite en minutos (opcional)
+        dueDate: data.dueDate ? this.ensureTimestamp(data.dueDate) : null,
+        allowMultipleAttempts: data.allowMultipleAttempts || false,
+        published: data.published || false,
+        order: data.order || 1, // Orden dentro del curso
+        createdBy: data.createdBy || null,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
       
-      // Crear evaluación
-      const docRef = await evaluationsCollection.add(dataWithTimestamps);
+      const docRef = await evaluationsCollection.add(evaluationData);
       
       return {
         id: docRef.id,
-        ...dataWithTimestamps
+        ...evaluationData
       };
     } catch (error) {
       console.error('Error en create:', error);
@@ -90,30 +59,178 @@ class EvaluationModel {
   }
   
   /**
-   * Actualiza una evaluación existente
-   * @param {string} evaluationId - ID de la evaluación a actualizar
-   * @param {Object} evaluationData - Datos a actualizar
-   * @returns {Promise<Object>} La evaluación actualizada
+   * Convertir varios formatos de fecha a Timestamp de Firestore
+   * @param {Date|string|number} date - Fecha a convertir
+   * @returns {Timestamp} Timestamp de Firestore
    */
-  static async update(evaluationId, evaluationData) {
+  static ensureTimestamp(date) {
+    if (!date) return null;
+    
+    if (date instanceof admin.firestore.Timestamp) {
+      return date;
+    }
+    
+    if (typeof date === 'string') {
+      return admin.firestore.Timestamp.fromDate(new Date(date));
+    }
+    
+    if (date instanceof Date) {
+      return admin.firestore.Timestamp.fromDate(date);
+    }
+    
+    if (typeof date === 'number') {
+      return admin.firestore.Timestamp.fromMillis(date);
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Buscar una evaluación por ID
+   * @param {string} id - ID de la evaluación
+   * @returns {Promise<Object|null>} Evaluación o null si no existe
+   */
+  static async findById(id) {
     try {
-      // Verificar que la evaluación existe
-      const evaluationDoc = await evaluationsCollection.doc(evaluationId).get();
-      if (!evaluationDoc.exists) {
+      const doc = await evaluationsCollection.doc(id).get();
+      if (!doc.exists) return null;
+      
+      return {
+        id: doc.id,
+        ...doc.data()
+      };
+    } catch (error) {
+      console.error('Error en findById:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Buscar evaluaciones por curso
+   * @param {string} courseId - ID del curso
+   * @param {boolean} onlyPublished - Solo evaluaciones publicadas
+   * @returns {Promise<Array>} Lista de evaluaciones
+   */
+  static async findByCourse(courseId, onlyPublished = false) {
+    try {
+      let query = evaluationsCollection.where('courseId', '==', courseId);
+      
+      if (onlyPublished) {
+        query = query.where('published', '==', true);
+      }
+      
+      // Ordenar por el campo 'order'
+      query = query.orderBy('order', 'asc');
+      
+      const snapshot = await query.get();
+      
+      if (snapshot.empty) return [];
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error en findByCourse:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Obtener evaluaciones completadas por un estudiante
+   * @param {string} userId - ID del estudiante
+   * @returns {Promise<Array>} Lista de evaluaciones completadas
+   */
+  static async findCompletedByUser(userId) {
+    try {
+      // Obtener todas las inscripciones del usuario
+      const enrollmentsSnapshot = await enrollmentsCollection
+        .where('userId', '==', userId)
+        .get();
+      
+      if (enrollmentsSnapshot.empty) return [];
+      
+      // Recopilar todos los IDs de evaluaciones completadas
+      let completedEvaluationIds = [];
+      
+      enrollmentsSnapshot.docs.forEach(doc => {
+        const enrollmentData = doc.data();
+        if (enrollmentData.completedEvaluations && enrollmentData.completedEvaluations.length > 0) {
+          completedEvaluationIds = [...completedEvaluationIds, ...enrollmentData.completedEvaluations];
+        }
+      });
+      
+      // Si no hay evaluaciones completadas, retornar array vacío
+      if (completedEvaluationIds.length === 0) return [];
+      
+      // Obtener detalles de las evaluaciones completadas
+      const completedEvaluations = [];
+      
+      for (const evalId of completedEvaluationIds) {
+        const evalDoc = await evaluationsCollection.doc(evalId).get();
+        if (evalDoc.exists) {
+          const evalData = evalDoc.data();
+          
+          // Obtener información del curso asociado
+          const courseDoc = await coursesCollection.doc(evalData.courseId).get();
+          let courseData = null;
+          
+          if (courseDoc.exists) {
+            courseData = {
+              id: courseDoc.id,
+              title: courseDoc.data().title
+            };
+          }
+          
+          completedEvaluations.push({
+            id: evalDoc.id,
+            ...evalData,
+            course: courseData
+          });
+        }
+      }
+      
+      return completedEvaluations;
+    } catch (error) {
+      console.error('Error en findCompletedByUser:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Actualizar una evaluación
+   * @param {string} id - ID de la evaluación
+   * @param {Object} data - Datos actualizados
+   * @returns {Promise<Object>} Evaluación actualizada
+   */
+  static async update(id, data) {
+    try {
+      const evalDoc = await evaluationsCollection.doc(id).get();
+      if (!evalDoc.exists) {
         throw new Error('Evaluación no encontrada');
       }
       
-      // Preparar datos para actualización
+      // Validaciones básicas
+      if (data.questions && (!Array.isArray(data.questions) || data.questions.length === 0)) {
+        throw new Error('Se requiere al menos una pregunta en la evaluación');
+      }
+      
+      // Si se cambia la fecha de vencimiento, convertirla a Timestamp
+      if (data.dueDate) {
+        data.dueDate = this.ensureTimestamp(data.dueDate);
+      }
+      
+      // Preparar datos de actualización
       const updateData = {
-        ...evaluationData,
+        ...data,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
       
       // Actualizar la evaluación
-      await evaluationsCollection.doc(evaluationId).update(updateData);
+      await evaluationsCollection.doc(id).update(updateData);
       
       // Obtener la evaluación actualizada
-      const updatedDoc = await evaluationsCollection.doc(evaluationId).get();
+      const updatedDoc = await evaluationsCollection.doc(id).get();
       
       return {
         id: updatedDoc.id,
@@ -126,50 +243,38 @@ class EvaluationModel {
   }
   
   /**
-   * Elimina una evaluación
-   * @param {string} evaluationId - ID de la evaluación a eliminar
+   * Eliminar una evaluación
+   * @param {string} id - ID de la evaluación
    * @returns {Promise<boolean>} true si se eliminó correctamente
    */
-  static async delete(evaluationId) {
+  static async delete(id) {
     try {
-      // Verificar que la evaluación existe
-      const evaluationDoc = await evaluationsCollection.doc(evaluationId).get();
-      if (!evaluationDoc.exists) {
+      const evalDoc = await evaluationsCollection.doc(id).get();
+      if (!evalDoc.exists) {
         throw new Error('Evaluación no encontrada');
       }
       
-      // Eliminar la evaluación
-      await evaluationsCollection.doc(evaluationId).delete();
+      // Eliminar también las respuestas asociadas a esta evaluación
+      const responsesSnapshot = await db.collection('responses')
+        .where('evaluationId', '==', id)
+        .get();
+      
+      // Usar batch para operaciones múltiples
+      const batch = db.batch();
+      
+      responsesSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      
+      // Agregar eliminación de la evaluación al batch
+      batch.delete(evaluationsCollection.doc(id));
+      
+      // Ejecutar el batch
+      await batch.commit();
+      
       return true;
     } catch (error) {
       console.error('Error en delete:', error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Verifica si un usuario tiene permisos para modificar/eliminar una evaluación
-   * @param {string} evaluationId - ID de la evaluación
-   * @param {string} userId - ID del usuario
-   * @param {string} userRole - Rol del usuario
-   * @returns {Promise<boolean>} true si tiene permisos
-   */
-  static async hasPermission(evaluationId, userId, userRole) {
-    try {
-      if (userRole === 'admin') return true;
-      
-      const evaluationDoc = await evaluationsCollection.doc(evaluationId).get();
-      if (!evaluationDoc.exists) return false;
-      
-      const evaluationData = evaluationDoc.data();
-      const courseDoc = await coursesCollection.doc(evaluationData.courseId).get();
-      
-      if (!courseDoc.exists) return false;
-      
-      // Verificar si el usuario es el profesor del curso
-      return courseDoc.data().teacherId === userId;
-    } catch (error) {
-      console.error('Error en hasPermission:', error);
       throw error;
     }
   }

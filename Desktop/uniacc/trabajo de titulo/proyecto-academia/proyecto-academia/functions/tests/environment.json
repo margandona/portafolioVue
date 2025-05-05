@@ -1,0 +1,56 @@
+{
+  "client": "Thunder Client",
+  "environmentName": "Academia API Environment",
+  "dateExported": "2023-11-15T10:00:00.000Z",
+  "version": "1.0",
+  "variables": [
+    {
+      "name": "base_url",
+      "value": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api"
+    },
+    {
+      "name": "token",
+      "value": ""
+    },
+    {
+      "name": "admin_token",
+      "value": ""
+    },
+    {
+      "name": "teacher_token",
+      "value": ""
+    },
+    {
+      "name": "student_token",
+      "value": ""
+    },
+    {
+      "name": "user_id",
+      "value": ""
+    },
+    {
+      "name": "course_id",
+      "value": ""
+    },
+    {
+      "name": "evaluation_id",
+      "value": ""
+    },
+    {
+      "name": "enrollment_id",
+      "value": ""
+    },
+    {
+      "name": "user_id_to_delete",
+      "value": ""
+    },
+    {
+      "name": "course_id_to_delete",
+      "value": ""
+    },
+    {
+      "name": "enrollment_id_to_delete",
+      "value": ""
+    }
+  ]
+}

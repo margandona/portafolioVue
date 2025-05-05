@@ -8,6 +8,9 @@ const usersCollection = db.collection('users');
  * Modelo para manejar operaciones relacionadas con cursos en Firestore
  */
 class CourseModel {
+  // Constante para el IVA (19% en Chile)
+  static IVA_RATE = 0.19;
+
   /**
    * Obtiene un curso por su ID
    * @param {string} courseId - ID del curso
@@ -32,6 +35,9 @@ class CourseModel {
           };
         }
       }
+      
+      // Calcular precios con descuentos
+      this.calculatePricing(courseData);
       
       return {
         id: courseDoc.id,
@@ -71,6 +77,9 @@ class CourseModel {
             };
           }
         }
+        
+        // Calcular precios con descuentos
+        this.calculatePricing(courseData);
         
         courses.push({
           id: doc.id,
@@ -218,34 +227,251 @@ class CourseModel {
   
   /**
    * Crea un nuevo curso
-   * @param {Object} courseData - Datos del curso
-   * @returns {Promise<Object>} El curso creado
+   * @param {Object} courseData - Datos del curso a crear
+   * @returns {Promise<Object>} Datos del curso creado
    */
   static async create(courseData) {
     try {
-      // Validar datos básicos
-      this.validateCourseData(courseData);
+      // Validar campos requeridos
+      if (!courseData.title) throw new Error('El título del curso es obligatorio');
+      if (!courseData.description) throw new Error('La descripción del curso es obligatoria');
+      if (!courseData.category) throw new Error('La categoría del curso es obligatoria');
+      if (!courseData.instructor_id) throw new Error('El ID del profesor es obligatorio');
       
-      // Añadir timestamps
-      const dataWithTimestamps = {
-        ...courseData,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      };
+      // Validar si es curso gratuito
+      const isFree = !!courseData.isFree;
+      
+      // Si es de pago, validar SKU y precio
+      if (!isFree) {
+        if (!courseData.sku) throw new Error('El SKU del curso es obligatorio para cursos de pago');
+        if (!courseData.netPrice && courseData.netPrice !== 0) throw new Error('El precio del curso es obligatorio para cursos de pago');
+        if (isNaN(courseData.netPrice) || courseData.netPrice < 0) {
+          throw new Error('El precio debe ser un número positivo');
+        }
+        
+        // Verificar si el SKU ya existe para evitar duplicados
+        const skuExists = await coursesCollection
+          .where('sku', '==', courseData.sku)
+          .limit(1)
+          .get();
+          
+        if (!skuExists.empty) {
+          throw new Error('El SKU ya existe. Debe ser único para cada curso');
+        }
+      } else {
+        // Para cursos gratuitos establecer precio en 0
+        courseData.netPrice = 0;
+        // Si no se proporciona SKU para curso gratuito, generar uno
+        if (!courseData.sku) {
+          courseData.sku = `FREE-${Date.now()}`;
+        }
+      }
+      
+      // Validar modalidad y campos específicos
+      if (!['synchronized', 'asynchronized'].includes(courseData.modality)) {
+        throw new Error('La modalidad debe ser "synchronized" o "asynchronized"');
+      }
+      
+      if (courseData.modality === 'synchronized') {
+        if (!courseData.start_date) throw new Error('La fecha de inicio es obligatoria para cursos sincronizados');
+        if (!courseData.end_date) throw new Error('La fecha de término es obligatoria para cursos sincronizados');
+        // Asegurarse de que las fechas sean objetos Date
+        courseData.start_date = this.ensureTimestamp(courseData.start_date);
+        courseData.end_date = this.ensureTimestamp(courseData.end_date);
+        // Asegurarse de que la fecha de fin sea posterior a la de inicio
+        if (courseData.end_date < courseData.start_date) {
+          throw new Error('La fecha de término debe ser posterior a la fecha de inicio');
+        }
+        // Para cursos sincronizados, duration_days es calculado
+        courseData.duration_days = null;
+      } else {
+        // Para cursos asincrónicos, se requiere duración en días
+        if (!courseData.duration_days) throw new Error('La duración en días es obligatoria para cursos asincrónicos');
+        if (isNaN(courseData.duration_days) || courseData.duration_days < 1) {
+          throw new Error('La duración debe ser un número positivo');
+        }
+        // Para cursos asincrónicos, no se usan fechas de inicio/fin
+        courseData.start_date = null;
+        courseData.end_date = null;
+      }
+      
+      // Procesar información de descuento si existe
+      if (courseData.discount) {
+        this.validateDiscountData(courseData);
+      }
+      
+      // Calcular precio total con IVA
+      courseData.totalPrice = this.calculateTotalPrice(courseData.netPrice);
+      courseData.isFree = isFree;
+      
+      // Inicializar campos de descuento si no existen
+      if (!courseData.discount) {
+        courseData.discount = 0;
+        courseData.discountType = null;
+        courseData.discountStartDate = null;
+        courseData.discountEndDate = null;
+        courseData.discountName = null;
+      }
+      
+      // Si tiene descuento, calcular precios con descuento
+      if (courseData.discount > 0) {
+        this.calculatePricing(courseData);
+      }
+      
+      // Agregar campos de auditoría
+      courseData.created_at = admin.firestore.FieldValue.serverTimestamp();
+      courseData.updated_at = admin.firestore.FieldValue.serverTimestamp();
       
       // Crear el curso
-      const docRef = await coursesCollection.add(dataWithTimestamps);
+      const docRef = await coursesCollection.add(courseData);
       
-      // Obtener el curso recién creado
-      const newCourseDoc = await docRef.get();
       return {
         id: docRef.id,
-        ...newCourseDoc.data()
+        ...courseData
       };
     } catch (error) {
       console.error('Error en create:', error);
       throw error;
     }
+  }
+  
+  /**
+   * Validar datos de descuento
+   * @param {Object} courseData - Datos del curso con descuento
+   */
+  static validateDiscountData(courseData) {
+    // Validar porcentaje de descuento
+    if (courseData.discount < 0 || courseData.discount > 100) {
+      throw new Error('El descuento debe estar entre 0 y 100%');
+    }
+    
+    // Validar tipo de descuento
+    const validTypes = ['manual', 'campaign', 'global'];
+    if (courseData.discountType && !validTypes.includes(courseData.discountType)) {
+      throw new Error(`Tipo de descuento inválido. Debe ser uno de: ${validTypes.join(', ')}`);
+    }
+    
+    // Si tiene fechas, validarlas
+    if (courseData.discountStartDate && courseData.discountEndDate) {
+      const startDate = this.ensureTimestamp(courseData.discountStartDate);
+      const endDate = this.ensureTimestamp(courseData.discountEndDate);
+      
+      if (endDate < startDate) {
+        throw new Error('La fecha de fin del descuento debe ser posterior a la fecha de inicio');
+      }
+      
+      // Actualizar a Timestamps de Firestore
+      courseData.discountStartDate = startDate;
+      courseData.discountEndDate = endDate;
+    }
+  }
+  
+  /**
+   * Convierte varios formatos de fecha a Timestamp de Firestore
+   * @param {Date|string|number} date - Fecha a convertir
+   * @returns {Timestamp} Timestamp de Firestore
+   */
+  static ensureTimestamp(date) {
+    if (!date) return null;
+    
+    if (date instanceof admin.firestore.Timestamp) {
+      return date;
+    }
+    
+    if (typeof date === 'string') {
+      return admin.firestore.Timestamp.fromDate(new Date(date));
+    }
+    
+    if (date instanceof Date) {
+      return admin.firestore.Timestamp.fromDate(date);
+    }
+    
+    if (typeof date === 'number') {
+      return admin.firestore.Timestamp.fromMillis(date);
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Calcula el precio total con IVA
+   * @param {number} netPrice - Precio neto sin IVA
+   * @returns {number} Precio total con IVA
+   */
+  static calculateTotalPrice(netPrice) {
+    if (!netPrice || isNaN(netPrice)) return 0;
+    
+    const iva = netPrice * this.IVA_RATE;
+    const totalPrice = Math.round((netPrice + iva) * 100) / 100; // Redondear a 2 decimales
+    
+    return totalPrice;
+  }
+  
+  /**
+   * Calcula todos los precios de un curso incluyendo descuentos
+   * @param {Object} courseData - Datos del curso
+   */
+  static calculatePricing(courseData) {
+    // Si es gratis, establecer todos los precios a 0
+    if (courseData.isFree) {
+      courseData.netPrice = 0;
+      courseData.totalPrice = 0;
+      courseData.discountedNetPrice = 0;
+      courseData.discountedTotalPrice = 0;
+      courseData.discountAmount = 0;
+      courseData.hasActiveDiscount = false;
+      return;
+    }
+    
+    // Calcular precio con IVA si tiene precio
+    if (courseData.netPrice || courseData.netPrice === 0) {
+      courseData.totalPrice = this.calculateTotalPrice(courseData.netPrice);
+    }
+    
+    // Verificar si hay un descuento activo
+    courseData.hasActiveDiscount = this.isDiscountActive(courseData);
+    
+    if (courseData.hasActiveDiscount && courseData.discount > 0) {
+      // Calcular precios con descuento
+      const discountMultiplier = (100 - courseData.discount) / 100;
+      courseData.discountedNetPrice = Math.round(courseData.netPrice * discountMultiplier * 100) / 100;
+      courseData.discountedTotalPrice = this.calculateTotalPrice(courseData.discountedNetPrice);
+      courseData.discountAmount = Math.round((courseData.netPrice - courseData.discountedNetPrice) * 100) / 100;
+    } else {
+      // Sin descuento, los precios con descuento son iguales a los normales
+      courseData.discountedNetPrice = courseData.netPrice;
+      courseData.discountedTotalPrice = courseData.totalPrice;
+      courseData.discountAmount = 0;
+      courseData.hasActiveDiscount = false;
+    }
+  }
+  
+  /**
+   * Verifica si un descuento está activo
+   * @param {Object} courseData - Datos del curso
+   * @returns {boolean} - true si el descuento está activo
+   */
+  static isDiscountActive(courseData) {
+    // Si no hay descuento o es 0, no está activo
+    if (!courseData.discount || courseData.discount <= 0) {
+      return false;
+    }
+    
+    // Si es descuento manual o global sin fechas, está activo
+    if (courseData.discountType === 'manual' || courseData.discountType === 'global') {
+      // Si no tiene fechas, está activo
+      if (!courseData.discountStartDate || !courseData.discountEndDate) {
+        return true;
+      }
+    }
+    
+    // Si tiene fechas, verificar que esté dentro del rango
+    if (courseData.discountStartDate && courseData.discountEndDate) {
+      const now = admin.firestore.Timestamp.now();
+      return now >= courseData.discountStartDate && now <= courseData.discountEndDate;
+    }
+    
+    return true;
   }
   
   /**
@@ -259,6 +485,58 @@ class CourseModel {
       // Verificar que el curso exista
       const courseDoc = await coursesCollection.doc(courseId).get();
       if (!courseDoc.exists) throw new Error('Curso no encontrado');
+      
+      const existingCourse = courseDoc.data();
+      
+      // Si se cambia entre gratis y pago, validar datos
+      if (courseData.isFree !== undefined && courseData.isFree !== existingCourse.isFree) {
+        if (courseData.isFree) {
+          // Si se cambia a gratis, establecer precio en 0
+          courseData.netPrice = 0;
+        } else if (!courseData.netPrice && !existingCourse.netPrice) {
+          // Si se cambia a pago pero no tiene precio
+          throw new Error('Al cambiar a curso de pago, debe establecer un precio');
+        }
+      }
+      
+      // Si está actualizando el SKU, verificar que no exista
+      if (courseData.sku) {
+        const skuExists = await coursesCollection
+          .where('sku', '==', courseData.sku)
+          .limit(1)
+          .get();
+          
+        if (!skuExists.empty && skuExists.docs[0].id !== courseId) {
+          throw new Error('El SKU ya existe. Debe ser único para cada curso');
+        }
+      }
+      
+      // Si está actualizando el precio, calcular el total con IVA
+      if (courseData.netPrice !== undefined) {
+        if (!courseData.isFree && (isNaN(courseData.netPrice) || courseData.netPrice < 0)) {
+          throw new Error('El precio debe ser un número positivo');
+        }
+        courseData.totalPrice = this.calculateTotalPrice(courseData.netPrice);
+      }
+      
+      // Si está actualizando el descuento, validarlo
+      if (courseData.discount !== undefined) {
+        // Mezclar datos existentes con nuevos para validación completa
+        const discountData = {
+          discount: courseData.discount !== undefined ? courseData.discount : existingCourse.discount,
+          discountType: courseData.discountType || existingCourse.discountType,
+          discountStartDate: courseData.discountStartDate || existingCourse.discountStartDate,
+          discountEndDate: courseData.discountEndDate || existingCourse.discountEndDate,
+        };
+        
+        this.validateDiscountData(discountData);
+        
+        // Actualizar todos los campos de descuento
+        courseData.discount = discountData.discount;
+        courseData.discountType = discountData.discountType;
+        courseData.discountStartDate = discountData.discountStartDate;
+        courseData.discountEndDate = discountData.discountEndDate;
+      }
       
       // Preparar datos para actualización
       const updateData = {
@@ -276,12 +554,97 @@ class CourseModel {
       
       // Obtener el curso actualizado
       const updatedDoc = await coursesCollection.doc(courseId).get();
+      const updatedData = updatedDoc.data();
+      
+      // Calcular precios con descuentos para la respuesta
+      this.calculatePricing(updatedData);
+      
       return {
         id: updatedDoc.id,
-        ...updatedDoc.data()
+        ...updatedData
       };
     } catch (error) {
       console.error('Error en update:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Aplica un descuento a un curso
+   * @param {string} courseId - ID del curso
+   * @param {Object} discountData - Datos del descuento
+   * @returns {Promise<Object>} - Curso con descuento aplicado
+   */
+  static async applyDiscount(courseId, discountData) {
+    try {
+      const courseDoc = await coursesCollection.doc(courseId).get();
+      if (!courseDoc.exists) {
+        throw new Error('Curso no encontrado');
+      }
+      
+      const courseData = courseDoc.data();
+      
+      // No permitir descuentos en cursos gratuitos
+      if (courseData.isFree) {
+        throw new Error('No se pueden aplicar descuentos a cursos gratuitos');
+      }
+      
+      // Validar datos de descuento
+      this.validateDiscountData(discountData);
+      
+      // Actualizar curso con el descuento
+      const updateData = {
+        discount: discountData.discount,
+        discountType: discountData.discountType,
+        discountName: discountData.discountName,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+      
+      // Actualizar fechas si se proporcionan
+      if (discountData.discountStartDate) {
+        updateData.discountStartDate = this.ensureTimestamp(discountData.discountStartDate);
+      }
+      
+      if (discountData.discountEndDate) {
+        updateData.discountEndDate = this.ensureTimestamp(discountData.discountEndDate);
+      }
+      
+      await coursesCollection.doc(courseId).update(updateData);
+      
+      // Retornar curso actualizado
+      return await this.findById(courseId);
+    } catch (error) {
+      console.error('Error al aplicar descuento:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Elimina el descuento de un curso
+   * @param {string} courseId - ID del curso
+   * @returns {Promise<Object>} - Curso sin descuento
+   */
+  static async removeDiscount(courseId) {
+    try {
+      const courseDoc = await coursesCollection.doc(courseId).get();
+      if (!courseDoc.exists) {
+        throw new Error('Curso no encontrado');
+      }
+      
+      // Eliminar descuento
+      await coursesCollection.doc(courseId).update({
+        discount: 0,
+        discountType: null,
+        discountName: null,
+        discountStartDate: null,
+        discountEndDate: null,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      // Retornar curso actualizado
+      return await this.findById(courseId);
+    } catch (error) {
+      console.error('Error al eliminar descuento:', error);
       throw error;
     }
   }

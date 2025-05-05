@@ -1,0 +1,324 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Enrollments API",
+  "dateExported": "2023-11-15T12:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Inscripciones",
+      "id": "enrollments-folder",
+      "description": "Operaciones con inscripciones"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Listar Inscripciones (Usuario)",
+      "id": "get-user-enrollments",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Listar Inscripciones (Admin)",
+      "id": "get-admin-enrollments",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "includeRelations",
+          "value": "true"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Listar Inscripciones (Profesor)",
+      "id": "get-teacher-enrollments",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Crear Inscripción (Estudiante)",
+      "id": "create-enrollment",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"courseId\": \"{{course_id}}\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        },
+        {
+          "type": "set-env-var",
+          "custom": "json.enrollment.id",
+          "action": "setto",
+          "value": "enrollment_id"
+        }
+      ]
+    },
+    {
+      "name": "Crear Inscripción (Admin)",
+      "id": "create-enrollment-admin",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"courseId\": \"{{course_id}}\",\n  \"userId\": \"{{student_id}}\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Progreso",
+      "id": "update-enrollment-progress",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments/{{enrollment_id}}/progress",
+      "method": "PATCH",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"progress\": 50,\n  \"completedEvaluations\": [\"{{evaluation_id}}\"]\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Calificación",
+      "id": "update-enrollment-grade",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments/{{enrollment_id}}/grade",
+      "method": "PATCH",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"grade\": 85,\n  \"certificateIssued\": false\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Cambiar Estado",
+      "id": "update-enrollment-status",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments/{{enrollment_id}}/status",
+      "method": "PATCH",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"status\": \"dropped\",\n  \"notes\": \"El estudiante decidió abandonar el curso\"\n}"
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Buscar Estudiante por ID",
+      "id": "get-student-by-id",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments/students",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "id",
+          "value": "{{student_id}}"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Eliminar Inscripción",
+      "id": "delete-enrollment",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/enrollments/{{enrollment_id}}",
+      "method": "DELETE",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Pruebas de API de Inscripciones",
+      "description": "Ejemplos de peticiones HTTP para probar la API de inscripciones",
+      "baseUrl": "http://localhost:5001/proyecto-academia/us-central1/api",
+      "tests": [
+        {
+          "name": "Inscribirse en un curso gratuito",
+          "method": "POST",
+          "url": "/enrollments",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "body": {
+            "courseId": "{{FREE_COURSE_ID}}"
+          }
+        },
+        {
+          "name": "Listar inscripciones del estudiante",
+          "method": "GET",
+          "url": "/enrollments",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          }
+        },
+        {
+          "name": "Actualizar progreso en curso",
+          "method": "PATCH",
+          "url": "/enrollments/{{ENROLLMENT_ID}}/progress",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "body": {
+            "progress": 50,
+            "completedEvaluations": ["{{EVALUATION_ID}}"]
+          }
+        },
+        {
+          "name": "Obtener estadísticas de inscripciones para un curso",
+          "method": "GET",
+          "url": "/enrollments/stats/{{COURSE_ID}}",
+          "headers": {
+            "Authorization": "Bearer {{TEACHER_TOKEN}}"
+          }
+        }
+      ]
+    }
+  ]
+}

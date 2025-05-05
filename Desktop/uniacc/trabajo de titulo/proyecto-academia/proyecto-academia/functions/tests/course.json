@@ -1,0 +1,393 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Courses API",
+  "dateExported": "2023-11-15T10:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Cursos",
+      "id": "courses-folder",
+      "description": "Operaciones con cursos"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Listar Todos los Cursos (Sin Autenticación)",
+      "id": "get-all-courses",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses",
+      "method": "GET",
+      "headers": [],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Crear Curso (Profesor)",
+      "id": "create-course",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Curso de Prueba\",\n  \"description\": \"Este es un curso de prueba\",\n  \"category\": \"Programación\",\n  \"modality\": \"asynchronized\",\n  \"duration_days\": 30\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        },
+        {
+          "type": "res-body",
+          "custom": "json.message",
+          "action": "equal",
+          "value": "Curso creado exitosamente"
+        }
+      ]
+    },
+    {
+      "name": "Crear Curso (Admin asignando a profesor)",
+      "id": "create-course-admin",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Curso Creado por Admin\",\n  \"description\": \"Este es un curso creado por un admin\",\n  \"category\": \"Administración\",\n  \"modality\": \"asynchronized\",\n  \"duration_days\": 45,\n  \"instructor_id\": \"{{teacher_id}}\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        },
+        {
+          "type": "res-body",
+          "custom": "json.message",
+          "action": "equal",
+          "value": "Curso creado exitosamente"
+        }
+      ]
+    },
+    {
+      "name": "Crear Curso Sincrónico",
+      "id": "create-synch-course",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Curso Sincrónico\",\n  \"description\": \"Este es un curso sincrónico de prueba\",\n  \"category\": \"Diseño\",\n  \"modality\": \"synchronized\",\n  \"start_date\": \"2023-12-01T00:00:00.000Z\",\n  \"end_date\": \"2023-12-31T00:00:00.000Z\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        }
+      ]
+    },
+    {
+      "name": "Crear Curso Error (Sin autenticación)",
+      "id": "create-course-error",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Curso Sin Autenticación\",\n  \"description\": \"Este curso no debería crearse\",\n  \"category\": \"Test\",\n  \"modality\": \"asynchronized\",\n  \"duration_days\": 30\n}"
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "401"
+        }
+      ]
+    },
+    {
+      "name": "Crear Curso Error (Estudiante)",
+      "id": "create-course-student-error",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Curso por Estudiante\",\n  \"description\": \"Un estudiante no debería poder crear cursos\",\n  \"category\": \"Test\",\n  \"modality\": \"asynchronized\",\n  \"duration_days\": 30\n}"
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "403"
+        }
+      ]
+    },
+    {
+      "name": "Obtener Curso por ID",
+      "id": "get-course-by-id",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/{{course_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Listar Cursos Disponibles",
+      "id": "get-available-courses",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/available",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Listar Cursos Inscritos",
+      "id": "get-enrolled-courses",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/enrolled",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Inscribirse en Curso",
+      "id": "enroll-in-course",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/enroll/{{course_id}}",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{student_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Curso",
+      "id": "update-course",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/{{course_id}}",
+      "method": "PUT",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Curso Actualizado\",\n  \"description\": \"Descripción actualizada\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Eliminar Curso",
+      "id": "delete-course",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/courses/{{course_id_to_delete}}",
+      "method": "DELETE",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{teacher_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Pruebas de API de Cursos",
+      "description": "Ejemplos de peticiones HTTP para probar la API de cursos",
+      "baseUrl": "http://localhost:5001/proyecto-academia/us-central1/api",
+      "tests": [
+        {
+          "name": "Listar todos los cursos",
+          "method": "GET",
+          "url": "/courses",
+          "headers": {}
+        },
+        {
+          "name": "Crear curso de pago",
+          "method": "POST",
+          "url": "/courses",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TEACHER_TOKEN}}"
+          },
+          "body": {
+            "title": "Desarrollo Web Avanzado",
+            "description": "Curso completo de desarrollo web avanzado",
+            "category": "Programación",
+            "modality": "asynchronized",
+            "duration_days": 45,
+            "sku": "DEV-WEB-001",
+            "netPrice": 45000,
+            "isFree": false
+          }
+        },
+        {
+          "name": "Crear curso gratuito",
+          "method": "POST",
+          "url": "/courses",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TEACHER_TOKEN}}"
+          },
+          "body": {
+            "title": "Introducción a la Programación",
+            "description": "Curso básico de programación",
+            "category": "Programación",
+            "modality": "asynchronized",
+            "duration_days": 15,
+            "isFree": true
+          }
+        },
+        {
+          "name": "Ver curso por ID",
+          "method": "GET",
+          "url": "/courses/{{COURSE_ID}}",
+          "headers": {
+            "Authorization": "Bearer {{TOKEN}}"
+          }
+        },
+        {
+          "name": "Aplicar descuento a curso",
+          "method": "POST",
+          "url": "/courses/{{COURSE_ID}}/discount",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{TEACHER_TOKEN}}"
+          },
+          "body": {
+            "discount": 15,
+            "discountType": "manual",
+            "discountName": "Descuento especial",
+            "discountStartDate": "2023-01-01T00:00:00.000Z",
+            "discountEndDate": "2023-12-31T23:59:59.000Z"
+          }
+        },
+        {
+          "name": "Eliminar descuento de curso",
+          "method": "DELETE",
+          "url": "/courses/{{COURSE_ID}}/discount",
+          "headers": {
+            "Authorization": "Bearer {{TEACHER_TOKEN}}"
+          }
+        }
+      ]
+    }
+  ]
+}
