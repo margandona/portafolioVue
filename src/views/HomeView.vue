@@ -7,6 +7,7 @@
       <AccessibilitySection v-if="isActive('accessibility')" id="accessibility" />
       <PlaygroundSection v-if="isActive('playground')" id="playground" />
       <EducationSection v-if="isActive('education')" id="education" />
+      <SecuritySection v-if="isActive('security')" id="security" />
       <GithubSection v-if="isActive('github')" id="github" />
       <CommunicationsSection v-if="isActive('communications')" id="communications" />
       <AboutSection v-if="isActive('about')" id="about" />
@@ -28,6 +29,7 @@ import AboutSection from '@/components/sections/AboutSection.vue'
 import AccessibilitySection from '@/components/sections/AccessibilitySection.vue'
 import PlaygroundSection from '@/components/sections/PlaygroundSection.vue'
 import EducationSection from '@/components/sections/EducationSection.vue'
+import SecuritySection from '@/components/sections/SecuritySection.vue'
 import CommunicationsSection from '@/components/sections/CommunicationsSection.vue'
 import GithubSection from '@/components/sections/GithubSection.vue'
 import ScrollToTop from '@/components/ScrollToTop.vue'
@@ -45,6 +47,7 @@ export default {
     AccessibilitySection,
     PlaygroundSection,
     EducationSection,
+    SecuritySection,
     CommunicationsSection,
     GithubSection,
     ScrollToTop,

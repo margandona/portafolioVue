@@ -273,22 +273,16 @@ export default {
 
 /* Estilos específicos para el modo daltonismo */
 .radio-modal.daltonismo {
-  filter: none !important; /* Evitamos aplicar doble grayscale */
-  display: block !important; /* Aseguramos que se muestre como bloque */
-  height: 100% !important; /* Altura completa */
-  width: 100% !important; /* Ancho completo */
-  top: 0 !important; /* Posición desde arriba */
-  left: 0 !important; /* Posición desde la izquierda */
+  filter: grayscale(100%) !important; /* Apply grayscale without affecting layout */
 }
 
 .radio-modal.daltonismo .radio-player {
-  display: block !important;
   position: fixed !important;
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
   margin: 0 !important;
-  z-index: 1051 !important; /* Aseguramos que esté por encima */
+  z-index: 1051 !important;
   background: linear-gradient(135deg, #444, #666) !important;
   color: white !important;
 }

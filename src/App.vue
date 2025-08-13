@@ -4,6 +4,7 @@
     <router-view/>
     <ScrollToTop />
     <DisponibilityModal />
+    <PokedexModal v-if="isPokedexModalVisible" />
   </div>
 </template>
 
@@ -11,6 +12,7 @@
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import ScrollToTop from '@/components/ScrollToTop.vue'
 import DisponibilityModal from '@/components/modals/DisponibilityModal.vue'
+import PokedexModal from '@/components/modals/PokedexModal.vue'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -18,7 +20,8 @@ export default {
   components: {
     NavbarComponent,
     ScrollToTop,
-    DisponibilityModal
+    DisponibilityModal,
+    PokedexModal
   },
   computed: {
     ...mapGetters('accessibility', [
@@ -31,6 +34,9 @@ export default {
       'isCursorLargeMode',
       'isNoAnimationsMode',
       'isDyslexiaFriendlyMode'
+    ]),
+    ...mapGetters('modals', [
+      'isPokedexModalVisible'
     ]),
     accessibilityClasses() {
       return {

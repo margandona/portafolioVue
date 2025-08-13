@@ -29,6 +29,11 @@ const routes = [
     component: HomeView
   },
   {
+    path: '/security',
+    name: 'security',
+    component: HomeView
+  },
+  {
     path: '/communications',
     name: 'communications',
     component: HomeView
