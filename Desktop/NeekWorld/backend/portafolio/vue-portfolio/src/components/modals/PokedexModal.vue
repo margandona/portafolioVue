@@ -1,415 +1,532 @@
 <template>
-  <div class="pokedex-modal" v-if="isPokedexModalVisible">
-    <div class="pokedex-container">
-      <div class="pokedex">
-        <div class="modal-close-button" @click="closePokedex">
-          <i class="fas fa-times"></i>
-        </div>
-        <div class="pokedex__header">
-          <div class="pokedex__top">
-            <div id="pokedex-circle" class="pokedex__circle blue"></div>
-            <div class="pokedex__lights">
-              <div class="pokedex__light pokedex__light--blue"></div>
-              <div class="pokedex__light pokedex__light--yellow"></div>
-              <div class="pokedex__light pokedex__light--green"></div>
-            </div>
-            <button id="toggle-options" class="pokedex__button" @click="toggleOptions">
-              <i class="fas fa-cog"></i>
-            </button>
-          </div>
-          <div class="pokedex__screen">
-            <h2 id="pokemon-name" class="pokedex__nombre"></h2>
-            <img id="pokemon-image" class="pokedex__image" alt="Imagen de Pokémon" style="display:none;">
-            <div id="pokemon-placeholder" class="pokedex__placeholder"></div>
-          </div>
-          <div class="pokedex__buttons">
-            <button id="btn-prev" class="pokedex__button pokedex__button--left" @click="loadPreviousPokemon">
-              <i class="fas fa-arrow-left"></i>
-            </button>
-            <button id="btn-next" class="pokedex__button pokedex__button--right" @click="loadNextPokemon">
-              <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </div>
-        <div class="pokedex__body">
-          <div class="pokedex__busqueda">
-            <input id="search-input" type="text" class="form-control" placeholder="Buscar Pokémon por nombre, ID o tipo" 
-                  aria-label="Buscar Pokémon por nombre, ID o tipo" 
-                  v-model="searchQuery"
-                  @input="findSuggestions">
-            <div id="suggestions" class="pokedex__sugerencias" aria-live="polite" v-if="suggestions.length > 0">
-              <ul>
-                <li v-for="(suggestion, index) in suggestions" :key="index" @click="loadPokemon(suggestion.name)">
-                  {{ suggestion.name }}
-                </li>
-              </ul>
-            </div>
-            <button id="search-btn" class="btn btn-primary" @click="searchPokemon">
-              <i class="fas fa-search"></i> Buscar
-            </button>
-          </div>
-          <div id="pokemon-info" class="pokedex__info"></div>
-        </div>
-        <div class="pokedex__menus">
-          <button id="toggle-history" class="btn btn-secondary btn-menu" @click="toggleHistory">
-            <i class="fas fa-history"></i> Historial
-          </button>
-          <div id="history" class="pokedex__historial" v-show="showHistory">
-            <ul v-if="history.length > 0">
-              <li v-for="(item, index) in history" :key="index" @click="loadPokemon(item.id)">
-                <img :src="item.sprites.front_default" :alt="'Imagen de ' + item.name" class="pokedex__historial-imagen">
-                <span>{{ item.id }} - {{ item.name }} ({{ item.timestamp }})</span>
-                <span class="pokedex__types-list">
-                  <span v-for="(type, tIndex) in item.types" :key="tIndex" :class="type.type.name">
-                    {{ type.type.name }}
-                  </span>
-                </span>
-              </li>
-            </ul>
-          </div>
-          <button id="toggle-favorites" class="btn btn-secondary btn-menu" @click="toggleFavorites">
-            <i class="fas fa-star"></i> Favoritos
-          </button>
-          <div id="favorites" class="pokedex__favoritos" v-show="showFavorites">
-            <ul v-if="favorites.length > 0">
-              <li v-for="(item, index) in favorites" :key="index" @click="loadPokemon(item.id)">
-                <img :src="item.sprites.front_default" :alt="'Imagen de ' + item.name" class="pokedex__favoritos-imagen">
-                <span>{{ item.id }} - {{ item.name }}</span>
-                <span class="pokedex__types-list">
-                  <span v-for="(type, tIndex) in item.types" :key="tIndex" :class="type.type.name">
-                    {{ type.type.name }}
-                  </span>
-                </span>
-                <button @click.stop="removeFavorite(item.id)" class="btn btn-danger btn-sm">
-                  <i class="fas fa-trash"></i>
+  <div class="pokedex-modal" v-if="isPokedexModalVisible" :class="{ 'minimized': isMinimized }">
+    <template v-if="!isMinimized">
+      <div class="modal" tabindex="-1">
+        <div class="modal-backdrop" @click="hidePokedexModal"></div>
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Pokédex</h5>
+              <div class="modal-controls">
+                <button type="button" class="control-btn minimize-btn" @click="minimizePokedex">
+                  <i class="fas fa-window-minimize"></i>
                 </button>
-              </li>
-            </ul>
+                <button type="button" class="close" @click="hidePokedexModal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+            </div>
+            <div class="modal-body">
+              <div class="pokedex-container">
+                <div class="pokedex">
+                  <pokedex-screen 
+                    ref="pokedexScreen"
+                    :current-id="currentId"
+                    @prev-pokemon="prevPokemon"
+                    @next-pokemon="nextPokemon"
+                    @clear-screen="limpiarPantalla"
+                    @toggle-options="toggleOptionsMenu"
+                  />
+                  
+                  <pokedex-search
+                    ref="pokedexSearch"
+                    @search="searchPokemon"
+                    @input-changed="handleSearchInput"
+                  />
+                  
+                  <pokedex-info
+                    ref="pokedexInfo"
+                  />
+                  
+                  <pokedex-menus
+                    ref="pokedexMenus"
+                    :historial="historial"
+                    :favoritos="favoritos"
+                    @toggle-history="toggleHistory"
+                    @toggle-favorites="toggleFavorites"
+                    @load-pokemon="cargarPokemon"
+                    @save-favorite="guardarFavorito"
+                    @delete-favorite="borrarFavorito"
+                  />
+                </div>
+              </div>
+              
+              <div ref="optionsMenu" class="options-menu">
+                <button class="btn btn-primary" @click="increaseFontSize">
+                  <i class="fas fa-text-height"></i> Aumentar Letra
+                </button>
+                <button class="btn btn-primary" @click="decreaseFontSize">
+                  <i class="fas fa-text-height"></i> Disminuir Letra
+                </button>
+                <button class="btn btn-danger" @click="resetSettings">
+                  <i class="fas fa-undo"></i> Restaurar
+                </button>
+                <button class="btn btn-danger" @click="clearData">
+                  <i class="fas fa-trash"></i> Borrar Datos
+                </button>
+              </div>
+              
+              <!-- Toasts -->
+              <div aria-live="polite" aria-atomic="true" style="position: relative; z-index: 1000;">
+                <div ref="toastContainer" style="position: absolute; top: 10px; right: 10px;"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
     
-    <div id="options-menu" class="options-menu" :class="{ 'visible': showOptions }">
-      <button id="increase-font" class="btn btn-primary" @click="increaseFontSize">
-        <i class="fas fa-text-height"></i> Aumentar Letra
-      </button>
-      <button id="decrease-font" class="btn btn-primary" @click="decreaseFontSize">
-        <i class="fas fa-text-height"></i> Disminuir Letra
-      </button>
-      <button id="reset-settings" class="btn btn-danger" @click="resetSettings">
-        <i class="fas fa-undo"></i> Restaurar
-      </button>
-      <button id="clear-data" class="btn btn-danger" @click="clearData">
-        <i class="fas fa-trash"></i> Borrar Datos
-      </button>
+    <div v-else class="pokedex-minimized" @click="maximizePokedex">
+      <i class="fas fa-gamepad pokedex-icon"></i>
+      <span>Pokédex</span>
     </div>
-    
-    <!-- Toasts -->
-    <div id="toast-container" class="toast-container"></div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
-import '../../assets/css/pokedex.css'; // Assuming you have a CSS file for the Pokedex styles Assuming you have a CSS file for the Toast styles
+import PokedexScreen from '@/components/pokedex/PokedexScreen.vue';
+import PokedexSearch from '@/components/pokedex/PokedexSearch.vue';
+import PokedexInfo from '@/components/pokedex/PokedexInfo.vue';
+import PokedexMenus from '@/components/pokedex/PokedexMenus.vue';
 
 export default {
   name: 'PokedexModal',
+  components: {
+    PokedexScreen,
+    PokedexSearch,
+    PokedexInfo,
+    PokedexMenus
+  },
   data() {
     return {
-      currentId: 1,
       pokemonData: null,
-      favorites: [],
-      history: [],
-      showFavorites: false,
-      showHistory: false,
-      showOptions: false,
-      circleColors: ['blue', 'green', 'yellow', 'red'],
-      currentColorIndex: 0,
-      colorInterval: null,
-      searchQuery: '',
-      suggestions: [],
-      largeFontEnabled: false
+      currentId: 1,
+      favoritos: [],
+      historial: [],
+      intervalId: null,
+      optionsVisible: false,
+      isMinimized: false
     };
   },
   computed: {
     ...mapGetters('modals', ['isPokedexModalVisible'])
   },
-  mounted() {
-    // Load saved data
-    this.favorites = JSON.parse(localStorage.getItem('favoritos')) || [];
-    this.history = JSON.parse(localStorage.getItem('historial')) || [];
-    
-    // Start color cycling
-    this.colorInterval = setInterval(this.changeCircleColor, 500);
-    
-    // Load default Pokemon
-    this.loadPokemon(1);
-  },
-  beforeUnmount() {
-    if (this.colorInterval) {
-      clearInterval(this.colorInterval);
-    }
-  },
   methods: {
-    closePokedex() {
+    hidePokedexModal() {
       this.$store.dispatch('modals/hidePokedexModal');
+      clearInterval(this.intervalId);
     },
-    loadPokemon(id) {
-      document.getElementById('pokemon-info').innerHTML = '<div class="pokedex__loading">Cargando...</div>';
+    minimizePokedex() {
+      this.isMinimized = true;
+    },
+    maximizePokedex() {
+      this.isMinimized = false;
+    },
+    cargarPokemon(id) {
+      this.$refs.pokedexInfo.setLoading();
+      
       fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
         .then(response => {
           if (!response.ok) {
-            throw new Error('Pokemon not found');
+            throw new Error('Pokémon no encontrado');
           }
           return response.json();
         })
         .then(data => {
           this.pokemonData = data;
           this.currentId = data.id;
-          this.showPokemon(data);
-          this.addToHistory(data);
-          this.saveState(data);
+          this.$refs.pokedexScreen.setPokemon(data);
+          this.$refs.pokedexInfo.showPokemon(data);
+          this.agregarAlHistorial(data);
+          this.guardarEstado(data);
         })
         .catch(() => {
-          document.getElementById('pokemon-info').innerHTML = '<div class="pokedex__error">Pokémon no encontrado</div>';
-          this.showToast('Error', 'Pokémon no encontrado', 'bg-danger');
+          this.$refs.pokedexInfo.setError();
+          this.mostrarToast('Error', 'Pokémon no encontrado', 'bg-danger');
         });
     },
-    loadNextPokemon() {
-      this.loadPokemon(this.currentId + 1);
-    },
-    loadPreviousPokemon() {
-      if (this.currentId > 1) {
-        this.loadPokemon(this.currentId - 1);
-      }
-    },
-    showPokemon(pokemon) {
-      const types = pokemon.types.map(t => `<li class="pokedex__types-item ${t.type.name}">${t.type.name}</li>`).join('');
-      const stats = pokemon.stats.map(s => `<li><strong>${s.stat.name}:</strong> ${s.base_stat}</li>`).join('');
-      const abilities = pokemon.abilities.map(a => `<li>${a.ability.name} (${a.is_hidden ? 'Oculta' : 'Visible'})</li>`).join('');
-      const moves = pokemon.moves.map(m => `<li>${m.move.name} (Nivel: ${m.version_group_details[0].level_learned_at})</li>`).join('');
-      
-      document.getElementById('pokemon-name').textContent = this.capitalizeName(pokemon.name);
-      const pokemonImage = document.getElementById('pokemon-image');
-      pokemonImage.src = pokemon.sprites.front_default;
-      pokemonImage.style.display = 'block';
-      document.getElementById('pokemon-placeholder').style.display = 'none';
-      
-      document.getElementById('pokemon-info').innerHTML = `
-        <div class="pokedex__pokemon">
-          <h3 class="pokedex__nombre-pokemon">${this.capitalizeName(pokemon.name)}</h3>
-          <div class="pokedex__details">
-            <div class="pokedex__info-col">
-              <div class="pokedex__info-item">
-                <h3>Altura:</h3>
-                <p>${pokemon.height} dm</p>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Peso:</h3>
-                <p>${pokemon.weight} hg</p>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Experiencia base:</h3>
-                <p>${pokemon.base_experience}</p>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Tipos:</h3>
-                <ul class="pokedex__types">${types}</ul>
-              </div>
-            </div>
-            <div class="pokedex__info-col">
-              <div class="pokedex__info-item">
-                <h3>Estadísticas:</h3>
-                <ul class="pokedex__stats">${stats}</ul>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Habilidades:</h3>
-                <ul class="pokedex__abilities">${abilities}</ul>
-              </div>
-              <div class="pokedex__info-item">
-                <button class="btn btn-info" id="toggle-moves">
-                  <i class="fas fa-list"></i> Ver Movimientos
-                </button>
-                <ul class="pokedex__moves" style="display: none;">${moves}</ul>
-              </div>
-              <div class="pokedex__info-item">
-                <button class="btn btn-warning" onclick="document.querySelector('.pokedex-modal').__vue__.$options.methods.addToFavorites(${pokemon.id})">
-                  <i class="fas fa-star"></i> Agregar a Favoritos
-                </button>
-                <button class="btn btn-danger" onclick="document.querySelector('.pokedex-modal').__vue__.$options.methods.removeFavorite(${pokemon.id})">
-                  <i class="fas fa-trash"></i> Borrar de Favoritos
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('toggle-moves').addEventListener('click', () => {
-        const movesList = document.querySelector('.pokedex__moves');
-        const isHidden = movesList.style.display === 'none';
-        movesList.style.display = isHidden ? 'block' : 'none';
-        document.getElementById('toggle-moves').textContent = isHidden ? 'Ocultar Movimientos' : 'Ver Movimientos';
-      });
-
-      this.searchQuery = '';
-      this.suggestions = [];
-    },
-    capitalizeName(name) {
-      return name.charAt(0).toUpperCase() + name.slice(1);
-    },
-    changeCircleColor() {
-      this.currentColorIndex = (this.currentColorIndex + 1) % this.circleColors.length;
-      document.getElementById('pokedex-circle').className = 'pokedex__circle ' + this.circleColors[this.currentColorIndex];
-    },
-    addToHistory(pokemon) {
+    agregarAlHistorial(pokemon) {
       const timestamp = new Date().toLocaleString();
-      const exists = this.history.findIndex(item => item.id === pokemon.id);
-      
-      if (exists >= 0) {
-        this.history.splice(exists, 1);
-      }
-      
-      this.history.unshift({ 
+      this.historial.push({ 
         id: pokemon.id, 
         name: pokemon.name, 
         sprites: pokemon.sprites, 
         types: pokemon.types, 
         timestamp: timestamp 
       });
-      
-      if (this.history.length > 10) {
-        this.history.pop();
-      }
-      
-      localStorage.setItem('historial', JSON.stringify(this.history));
+      localStorage.setItem('historial', JSON.stringify(this.historial));
     },
-    addToFavorites(id) {
-      if (!this.favorites.find(f => f.id === id)) {
-        const pokemon = this.history.find(p => p.id === id) || this.pokemonData;
+    guardarFavorito(id) {
+      if (!this.favoritos.find(f => f.id === id)) {
+        const pokemon = this.historial.find(p => p.id === id);
         if (pokemon) {
-          this.favorites.push({
-            id: pokemon.id,
-            name: pokemon.name,
-            sprites: pokemon.sprites,
-            types: pokemon.types
-          });
-          localStorage.setItem('favoritos', JSON.stringify(this.favorites));
-          this.showToast('Éxito', 'Pokémon agregado a favoritos', 'bg-success');
+          this.favoritos.push(pokemon);
+          localStorage.setItem('favoritos', JSON.stringify(this.favoritos));
+          this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+          this.mostrarToast('Éxito', 'Pokémon agregado a favoritos', 'bg-success');
         }
       } else {
-        this.showToast('Error', 'Pokémon ya está en favoritos', 'bg-warning');
+        this.mostrarToast('Error', 'Pokémon ya está en favoritos', 'bg-warning');
       }
     },
-    removeFavorite(id) {
-      this.favorites = this.favorites.filter(f => f.id !== id);
-      localStorage.setItem('favoritos', JSON.stringify(this.favorites));
-      this.showToast('Éxito', 'Pokémon eliminado de favoritos', 'bg-success');
+    borrarFavorito(id) {
+      this.favoritos = this.favoritos.filter(f => f.id !== id);
+      localStorage.setItem('favoritos', JSON.stringify(this.favoritos));
+      this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+      this.mostrarToast('Éxito', 'Pokémon eliminado de favoritos', 'bg-success');
     },
-    toggleHistory() {
-      this.showHistory = !this.showHistory;
-      if (this.showFavorites && this.showHistory) {
-        this.showFavorites = false;
-      }
-    },
-    toggleFavorites() {
-      this.showFavorites = !this.showFavorites;
-      if (this.showHistory && this.showFavorites) {
-        this.showHistory = false;
-      }
-    },
-    toggleOptions() {
-      this.showOptions = !this.showOptions;
-    },
-    increaseFontSize() {
-      document.body.classList.add('large-font');
-      this.largeFontEnabled = true;
-    },
-    decreaseFontSize() {
-      document.body.classList.remove('large-font');
-      this.largeFontEnabled = false;
-    },
-    resetSettings() {
-      document.body.classList.remove('large-font');
-      this.largeFontEnabled = false;
+    guardarEstado(pokemon) {
+      localStorage.setItem('currentPokemon', JSON.stringify(pokemon));
     },
     clearData() {
       localStorage.removeItem('historial');
       localStorage.removeItem('favoritos');
-      this.history = [];
-      this.favorites = [];
-      this.showToast('Éxito', 'Datos guardados eliminados', 'bg-success');
+      localStorage.removeItem('currentPokemon');
+      this.historial = [];
+      this.favoritos = [];
+      this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+      this.$refs.pokedexMenus.updateHistorial(this.historial);
+      this.mostrarToast('Éxito', 'Datos guardados eliminados', 'bg-success');
     },
-    saveState(pokemon) {
-      localStorage.setItem('currentPokemon', JSON.stringify(pokemon));
+    limpiarPantalla() {
+      this.$refs.pokedexScreen.clearScreen();
+      this.$refs.pokedexInfo.clearInfo();
+      this.mostrarToast('Éxito', 'Pantalla limpiada', 'bg-success');
     },
-    showToast(title, message, bgClass) {
-      const toastContainer = document.getElementById('toast-container');
-      const toastId = 'toast-' + Date.now();
-      
+    mostrarToast(titulo, mensaje, clase) {
       const toastHtml = `
-        <div class="toast ${bgClass}" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast ${clase}" role="alert" aria-live="assertive" aria-atomic="true">
           <div class="toast-header">
-            <strong class="mr-auto">${title}</strong>
+            <strong class="mr-auto">${titulo}</strong>
             <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="toast-body">
-            ${message}
+            ${mensaje}
           </div>
         </div>
       `;
+      this.$refs.toastContainer.innerHTML += toastHtml;
       
-      toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-      const toastElement = document.getElementById(toastId);
+      // Use vanilla JS to manually create and show the toast
+      const toasts = this.$refs.toastContainer.querySelectorAll('.toast');
+      const toast = toasts[toasts.length - 1];
       
-      // Manual implementation of toast behavior
-      toastElement.classList.add('showing');
+      // Add showing class to animate it in
+      toast.classList.add('showing');
       
-      // Auto-remove after 3 seconds
+      // Hide and remove after 3 seconds
       setTimeout(() => {
-        toastElement.classList.remove('showing');
+        toast.classList.remove('showing');
         setTimeout(() => {
-          toastElement.remove();
-        }, 500);
+          toast.remove();
+        }, 500); // Wait for the fade out animation
       }, 3000);
-      
-      // Close button functionality
-      toastElement.querySelector('.close').addEventListener('click', () => {
-        toastElement.classList.remove('showing');
-        setTimeout(() => {
-          toastElement.remove();
-        }, 500);
-      });
     },
-    findSuggestions() {
-      if (this.searchQuery.length > 1) {
+    handleSearchInput(query) {
+      if (query.length > 1) {
         fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`)
           .then(response => response.json())
           .then(data => {
-            this.suggestions = data.results.filter(pokemon => 
-              pokemon.name.includes(this.searchQuery.toLowerCase())
-            ).slice(0, 10);
+            const resultados = data.results.filter(pokemon => pokemon.name.includes(query.toLowerCase()));
+            this.$refs.pokedexSearch.setSuggestions(resultados);
           })
           .catch(() => {
-            this.showToast('Error', 'No se pudo obtener las sugerencias', 'bg-danger');
+            this.mostrarToast('Error', 'No se pudo obtener las sugerencias', 'bg-danger');
           });
       } else {
-        this.suggestions = [];
+        this.$refs.pokedexSearch.clearSuggestions();
       }
     },
-    searchPokemon() {
-      if (this.searchQuery.trim()) {
-        this.loadPokemon(this.searchQuery.toLowerCase());
-      } else {
-        this.showToast('Error', 'Por favor ingrese un nombre, ID o tipo de Pokémon', 'bg-warning');
+    nextPokemon() {
+      this.cargarPokemon(this.currentId + 1);
+    },
+    prevPokemon() {
+      if (this.currentId > 1) {
+        this.cargarPokemon(this.currentId - 1);
       }
+    },
+    searchPokemon(filtro) {
+      if (filtro) {
+        this.cargarPokemon(filtro);
+      } else {
+        this.mostrarToast('Error', 'Por favor ingrese un nombre, ID o tipo de Pokémon', 'bg-warning');
+      }
+    },
+    toggleHistory() {
+      this.$refs.pokedexMenus.toggleHistory();
+    },
+    toggleFavorites() {
+      this.$refs.pokedexMenus.toggleFavorites();
+    },
+    toggleOptionsMenu() {
+      this.optionsVisible = !this.optionsVisible;
+      this.$refs.optionsMenu.classList.toggle('visible');
+    },
+    increaseFontSize() {
+      document.body.classList.add('large-font');
+    },
+    decreaseFontSize() {
+      document.body.classList.remove('large-font');
+    },
+    resetSettings() {
+      document.body.classList.remove('large-font');
     }
+  },
+  mounted() {
+    // Expose component instance for global access
+    window.pokedexVue = this;
+    
+    // Load saved data
+    this.historial = JSON.parse(localStorage.getItem('historial')) || [];
+    this.favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
+    
+    // Update child components with data
+    this.$nextTick(() => {
+      this.$refs.pokedexMenus.updateHistorial(this.historial);
+      this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+    });
+    
+    // Try to load the last Pokemon
+    const lastPokemon = JSON.parse(localStorage.getItem('currentPokemon'));
+    if (lastPokemon) {
+      this.cargarPokemon(lastPokemon.id);
+    }
+  },
+  beforeUnmount() {
+    // Cleanup when component is destroyed
+    delete window.pokedexVue; // Remove global reference
   }
 };
-
-
 </script>
+
+<style scoped>
+.pokedex-modal {
+  z-index: 1050;
+}
+
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1050;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1040;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 1.75rem auto;
+  z-index: 1050;
+}
+
+.modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-height: calc(100% - 3.5rem);
+}
+
+.modal-xl {
+  max-width: 90%;
+}
+
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.3rem;
+  outline: 0;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  border-top-left-radius: 0.3rem;
+  border-top-right-radius: 0.3rem;
+}
+
+.modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  padding: 1rem;
+}
+
+.modal-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.control-btn:hover {
+  transform: scale(1.2);
+}
+
+.minimize-btn:hover {
+  color: #ffca28;
+}
+
+.close {
+  float: right;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: 0.5;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.close:hover {
+  color: #000;
+  opacity: 0.75;
+}
+
+/* Pokedex Container Styles */
+.pokedex-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.pokedex {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ff0000;
+  border: 10px solid #000;
+  border-radius: 15px;
+  width: 400px;
+  padding: 10px;
+  color: #fff;
+  position: relative;
+  margin: 0 auto;
+}
+
+/* Toast Styles */
+.toast {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 10000;
+  min-width: 200px;
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.toast.showing {
+  transform: translateY(-20px);
+  opacity: 1;
+}
+
+.toast:not(.showing) {
+  transform: translateY(0);
+  opacity: 0;
+}
+
+/* Options Menu Styles */
+.options-menu {
+  display: none;
+  position: absolute;
+  top: 50px;
+  right: 50%;
+  transform: translateX(50%);
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
+  border-radius: 10px;
+  padding: 10px;
+  width: 200px;
+  z-index: 1000;
+}
+
+.options-menu.visible {
+  display: block;
+}
+
+.options-menu button {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+/* Minimized Pokedex Styles */
+.pokedex-minimized {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: linear-gradient(135deg, #ff0000, #cc0000);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1050;
+  transition: all 0.3s ease;
+}
+
+.pokedex-minimized:hover {
+  transform: scale(1.05);
+}
+
+.pokedex-icon {
+  font-size: 24px;
+  color: white;
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Global Font Size Class */
+:global(.large-font) {
+  font-size: 1.2em !important;
+}
+
+@media (max-width: 768px) {
+  .pokedex {
+    width: 300px;
+  }
+  
+  .modal-xl {
+    max-width: 95%;
+  }
+}
+</style>

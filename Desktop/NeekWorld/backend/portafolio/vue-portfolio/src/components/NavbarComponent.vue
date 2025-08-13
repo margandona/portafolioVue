@@ -70,6 +70,7 @@ export default {
         { text: 'Accesibilidad', id: 'accessibility', route: '/accessibility', icon: 'fas fa-universal-access' },
         { text: 'Diversión', id: 'playground', route: '/playground', icon: 'fas fa-gamepad' },
         { text: 'Educación', id: 'education', route: '/education', icon: 'fas fa-graduation-cap' },
+        { text: 'Seguridad', id: 'security', route: '/security', icon: 'fas fa-shield-alt' },
         { text: 'Radio', id: 'radio', route: null, icon: 'fas fa-broadcast-tower' },
         { text: 'GitHub', id: 'github', route: '/github', icon: 'fab fa-github' },
         { text: 'Acerca de', id: 'about', route: '/about', icon: 'fas fa-user' },

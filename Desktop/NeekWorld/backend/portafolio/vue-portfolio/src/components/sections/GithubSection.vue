@@ -6,7 +6,7 @@
       
       <!-- Featured Bootcamp Projects Section -->
       <div class="featured-projects mb-5">
-        <h3 class="featured-title mb-4">Actividades que corresponden a certificaciones</h3>
+        <h3 class="featured-title mb-4">Actividades que corresponden a certificacionescd</h3>
         <div class="row">
           <!-- Card 1: Portfolio Project -->
           <div class="col-md-4 mb-4">

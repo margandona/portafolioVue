@@ -26,7 +26,7 @@
                 o computadora.
               </p>
               
-              <button class="btn btn-primary" @click="showDisponibilityModal">Jugar con la Dex</button>
+              <button class="btn btn-primary" @click="showPokedexModal">Jugar con la Dex</button>
             </div>
           </div>
         </div>
@@ -75,6 +75,9 @@ export default {
   methods: {
     showDisponibilityModal() {
       this.$store.dispatch('modals/showDisponibilityModal');
+    },
+    showPokedexModal() {
+      this.$store.dispatch('modals/showPokedexModal');
     }
   }
 };

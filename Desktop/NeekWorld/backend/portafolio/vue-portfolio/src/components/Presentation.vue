@@ -9,10 +9,10 @@
         front-end innovadoras.
       </p>
       <p>
-        <router-link to="/work" class="presentation__link">Mira Mi Trabajo</router-link> |
-        <a href="@/assets/documents/curriculum.pdf" class="presentation__link" target="_blank">Descarga mi Currículum</a> |
-        <router-link to="/playground" class="presentation__link">¿Quieres Jugar?</router-link> |
-        <router-link to="/educacion" class="presentation__link">Contribución en Educación</router-link>
+        <a href="#" class="presentation__link" @click.prevent="navigateToSection('github')">Mira Mi Trabajo</a> |
+        <a href="/documents/curriculum.pdf" class="presentation__link" download="Curriculum_Marcos_Argandoña.pdf">Descarga mi Currículum</a> |
+        <a href="#" class="presentation__link" @click.prevent="navigateToSection('playground')">¿Quieres Jugar?</a> |
+        <a href="#" class="presentation__link" @click.prevent="navigateToSection('education')">Contribución en Educación</a>
       </p>
     </div>
 
@@ -48,6 +48,20 @@ export default {
         'modo-nocturno': this.isNightMode
       }
     }
+  },
+  methods: {
+    navigateToSection(sectionId) {
+      // Activate section in the navigation store
+      this.$store.dispatch('navigation/setActiveSection', sectionId);
+      
+      // Wait for the section to display before scrolling
+      this.$nextTick(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    }
   }
 };
 </script>
@@ -74,6 +88,7 @@ export default {
 
 .presentation__text p {
   font-size: 1.2rem;
+  text-align: justify;
 }
 
 .presentation__links {

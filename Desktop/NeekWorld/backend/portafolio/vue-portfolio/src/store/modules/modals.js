@@ -5,6 +5,7 @@ export const state = {
   isEducationModalVisible: false,
   isFigmaModalVisible: false,
   isDisponibilityModalVisible: false,
+  isPokedexModalVisible: false,
   educationReflection: null
 };
 
@@ -33,6 +34,12 @@ export const mutations = {
   },
   HIDE_DISPONIBILITY_MODAL(state) {
     state.isDisponibilityModalVisible = false;
+  },
+  SHOW_POKEDEX_MODAL(state) {
+    state.isPokedexModalVisible = true;
+  },
+  HIDE_POKEDEX_MODAL(state) {
+    state.isPokedexModalVisible = false;
   },
   SET_EDUCATION_REFLECTION(state, reflectionKey) {
     console.log('MUTATION: SET_EDUCATION_REFLECTION', reflectionKey);
@@ -66,6 +73,12 @@ export const actions = {
   hideDisponibilityModal({ commit }) {
     commit('HIDE_DISPONIBILITY_MODAL');
   },
+  showPokedexModal({ commit }) {
+    commit('SHOW_POKEDEX_MODAL');
+  },
+  hidePokedexModal({ commit }) {
+    commit('HIDE_POKEDEX_MODAL');
+  },
   showEducationReflection({ commit }, reflectionKey) {
     console.log('ACTION: showEducationReflection', reflectionKey);
     commit('SET_EDUCATION_REFLECTION', reflectionKey);
@@ -80,6 +93,7 @@ export const getters = {
   isEducationModalVisible: state => state.isEducationModalVisible,
   isFigmaModalVisible: state => state.isFigmaModalVisible,
   isDisponibilityModalVisible: state => state.isDisponibilityModalVisible,
+  isPokedexModalVisible: state => state.isPokedexModalVisible,
   educationReflection: state => {
     console.log('GETTER: educationReflection called, value:', state.educationReflection);
     return state.educationReflection;
