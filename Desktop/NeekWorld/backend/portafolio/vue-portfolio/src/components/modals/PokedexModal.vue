@@ -6,7 +6,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Pokédex</h5>
+              <h5 class="modal-title">Pokédex v.3.5</h5>
               <div class="modal-controls">
                 <button type="button" class="control-btn minimize-btn" @click="minimizePokedex">
                   <i class="fas fa-window-minimize"></i>
@@ -25,6 +25,7 @@
                     @prev-pokemon="prevPokemon"
                     @next-pokemon="nextPokemon"
                     @clear-screen="limpiarPantalla"
+                    @reset-pokedex="resetPokedexCompleto"
                     @toggle-options="toggleOptionsMenu"
                   />
                   
@@ -35,7 +36,10 @@
                   />
                   
                   <pokedex-info
+                    v-if="showPokemonInfo"
                     ref="pokedexInfo"
+                    class="pokedex-info-expanding"
+                    :class="{ 'info-visible': pokemonInfoVisible }"
                   />
                   
                   <pokedex-menus
@@ -101,12 +105,14 @@ export default {
   data() {
     return {
       pokemonData: null,
-      currentId: 1,
+      currentId: 0, // Start with 0 to indicate no Pokemon selected
       favoritos: [],
       historial: [],
       intervalId: null,
       optionsVisible: false,
-      isMinimized: false
+      isMinimized: false,
+      showPokemonInfo: false, // Controla si se muestra la sección de información
+      pokemonInfoVisible: false // Controla la animación de aparición
     };
   },
   computed: {
@@ -123,7 +129,32 @@ export default {
     maximizePokedex() {
       this.isMinimized = false;
     },
-    cargarPokemon(id) {
+    cargarPokemon(id, retryCount = 0) {
+      // Add safety checks to prevent infinite recursion
+      if (!this.$refs.pokedexInfo || !this.$refs.pokedexScreen) {
+        // If components aren't ready, retry up to 10 times with increasing delays
+        if (retryCount < 10) {
+          console.warn('Pokedex components not ready yet, retrying...', retryCount + 1);
+          setTimeout(() => {
+            this.cargarPokemon(id, retryCount + 1);
+          }, 100 + (retryCount * 50)); // Increasing delay: 100ms, 150ms, 200ms, etc.
+          return;
+        } else {
+          console.error('Failed to load Pokemon: components not ready after max retries');
+          return;
+        }
+      }
+      
+      // Activar la visualización del PokedexInfo si no está visible
+      if (!this.showPokemonInfo) {
+        this.showPokemonInfo = true;
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.pokemonInfoVisible = true;
+          }, 50);
+        });
+      }
+      
       this.$refs.pokedexInfo.setLoading();
       
       fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
@@ -136,45 +167,86 @@ export default {
         .then(data => {
           this.pokemonData = data;
           this.currentId = data.id;
-          this.$refs.pokedexScreen.setPokemon(data);
-          this.$refs.pokedexInfo.showPokemon(data);
+          
+          // Check refs exist before calling methods
+          if (this.$refs.pokedexScreen) {
+            this.$refs.pokedexScreen.setPokemon(data);
+          }
+          if (this.$refs.pokedexInfo) {
+            this.$refs.pokedexInfo.showPokemon(data);
+          }
+          
           this.agregarAlHistorial(data);
           this.guardarEstado(data);
+          
+          // Clear search input and suggestions
+          if (this.$refs.pokedexSearch) {
+            this.$refs.pokedexSearch.setValue('');
+            this.$refs.pokedexSearch.clearSuggestions();
+          }
         })
-        .catch(() => {
-          this.$refs.pokedexInfo.setError();
+        .catch(error => {
+          console.error('Error loading Pokemon:', error, 'for id:', id);
+          if (this.$refs.pokedexInfo) {
+            this.$refs.pokedexInfo.setError();
+          }
           this.mostrarToast('Error', 'Pokémon no encontrado', 'bg-danger');
         });
     },
     agregarAlHistorial(pokemon) {
-      const timestamp = new Date().toLocaleString();
-      this.historial.push({ 
-        id: pokemon.id, 
-        name: pokemon.name, 
-        sprites: pokemon.sprites, 
-        types: pokemon.types, 
-        timestamp: timestamp 
-      });
-      localStorage.setItem('historial', JSON.stringify(this.historial));
+      try {
+        const timestamp = new Date().toLocaleString();
+        this.historial.push({ 
+          id: pokemon.id, 
+          name: pokemon.name, 
+          sprites: pokemon.sprites, 
+          types: pokemon.types, 
+          timestamp: timestamp 
+        });
+        localStorage.setItem('historial', JSON.stringify(this.historial));
+        
+        // Update menu component if it exists
+        if (this.$refs.pokedexMenus) {
+          this.$refs.pokedexMenus.updateHistorial(this.historial);
+        }
+      } catch (error) {
+        console.error('Error adding to history:', error);
+      }
     },
     guardarFavorito(id) {
-      if (!this.favoritos.find(f => f.id === id)) {
-        const pokemon = this.historial.find(p => p.id === id);
-        if (pokemon) {
-          this.favoritos.push(pokemon);
-          localStorage.setItem('favoritos', JSON.stringify(this.favoritos));
-          this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
-          this.mostrarToast('Éxito', 'Pokémon agregado a favoritos', 'bg-success');
+      try {
+        if (!this.favoritos.find(f => f.id === id)) {
+          const pokemon = this.historial.find(p => p.id === id);
+          if (pokemon) {
+            this.favoritos.push(pokemon);
+            localStorage.setItem('favoritos', JSON.stringify(this.favoritos));
+            
+            if (this.$refs.pokedexMenus) {
+              this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+            }
+            this.mostrarToast('Éxito', 'Pokémon agregado a favoritos', 'bg-success');
+          }
+        } else {
+          this.mostrarToast('Error', 'Pokémon ya está en favoritos', 'bg-warning');
         }
-      } else {
-        this.mostrarToast('Error', 'Pokémon ya está en favoritos', 'bg-warning');
+      } catch (error) {
+        console.error('Error saving favorite:', error);
+        this.mostrarToast('Error', 'Error al guardar favorito', 'bg-danger');
       }
     },
     borrarFavorito(id) {
-      this.favoritos = this.favoritos.filter(f => f.id !== id);
-      localStorage.setItem('favoritos', JSON.stringify(this.favoritos));
-      this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
-      this.mostrarToast('Éxito', 'Pokémon eliminado de favoritos', 'bg-success');
+      try {
+        this.favoritos = this.favoritos.filter(f => f.id !== id);
+        localStorage.setItem('favoritos', JSON.stringify(this.favoritos));
+        
+        if (this.$refs.pokedexMenus) {
+          this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+        }
+        this.mostrarToast('Éxito', 'Pokémon eliminado de favoritos', 'bg-success');
+      } catch (error) {
+        console.error('Error deleting favorite:', error);
+        this.mostrarToast('Error', 'Error al eliminar favorito', 'bg-danger');
+      }
     },
     guardarEstado(pokemon) {
       localStorage.setItem('currentPokemon', JSON.stringify(pokemon));
@@ -190,9 +262,71 @@ export default {
       this.mostrarToast('Éxito', 'Datos guardados eliminados', 'bg-success');
     },
     limpiarPantalla() {
+      // Reset all component screens
       this.$refs.pokedexScreen.clearScreen();
       this.$refs.pokedexInfo.clearInfo();
+      
+      // Reset search input
+      if (this.$refs.pokedexSearch) {
+        this.$refs.pokedexSearch.clearSearch();
+      }
+      
+      // Ocultar el PokedexInfo con animación
+      this.pokemonInfoVisible = false;
+      setTimeout(() => {
+        this.showPokemonInfo = false;
+      }, 300); // Esperar a que termine la animación
+      
+      // Reset state variables
+      this.pokemonData = null;
+      this.currentId = 0; // Set to 0 to indicate no Pokemon selected
+      
+      // Clear current Pokemon from localStorage
+      localStorage.removeItem('currentPokemon');
+      
       this.mostrarToast('Éxito', 'Pantalla limpiada', 'bg-success');
+    },
+    resetPokedexCompleto() {
+      // This method performs a complete reset to initial state
+      // Reset screen components directly without calling clearScreen to avoid recursion
+      if (this.$refs.pokedexScreen) {
+        if (this.$refs.pokedexScreen.$refs.pokemonName) {
+          this.$refs.pokedexScreen.$refs.pokemonName.textContent = '';
+        }
+        // No intentar acceder a pokemonImage ya que no existe como ref en PokedexScreen
+        if (this.$refs.pokedexScreen.$refs.pokemonPlaceholder) {
+          this.$refs.pokedexScreen.$refs.pokemonPlaceholder.style.display = 'block';
+        }
+        // Limpiar datos del componente PokedexScreen
+        if (typeof this.$refs.pokedexScreen.clearScreen === 'function') {
+          this.$refs.pokedexScreen.clearScreen();
+        }
+      }
+      
+      // Reset info component
+      if (this.$refs.pokedexInfo) {
+        this.$refs.pokedexInfo.clearInfo();
+      }
+      
+      // Reset search input
+      if (this.$refs.pokedexSearch) {
+        this.$refs.pokedexSearch.clearSearch();
+      }
+      
+      // Ocultar el PokedexInfo con animación
+      this.pokemonInfoVisible = false;
+      setTimeout(() => {
+        this.showPokemonInfo = false;
+      }, 300); // Esperar a que termine la animación
+      
+      // Reset state variables to initial state
+      this.pokemonData = null;
+      this.currentId = 0; // Set to 0 to indicate no Pokemon selected
+      
+      // Clear current Pokemon from localStorage
+      localStorage.removeItem('currentPokemon');
+      
+      this.mostrarToast('Éxito', 'Pokédex reiniciado al estado inicial', 'bg-success');
     },
     mostrarToast(titulo, mensaje, clase) {
       const toastHtml = `
@@ -230,7 +364,9 @@ export default {
         fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`)
           .then(response => response.json())
           .then(data => {
-            const resultados = data.results.filter(pokemon => pokemon.name.includes(query.toLowerCase()));
+            const resultados = data.results.filter(pokemon => 
+              pokemon.name.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 10); // Limit to 10 suggestions
             this.$refs.pokedexSearch.setSuggestions(resultados);
           })
           .catch(() => {
@@ -241,16 +377,31 @@ export default {
       }
     },
     nextPokemon() {
-      this.cargarPokemon(this.currentId + 1);
+      // Only allow navigation if there's a current Pokemon loaded
+      if (this.currentId > 0) {
+        this.cargarPokemon(this.currentId + 1);
+      }
     },
     prevPokemon() {
+      // Only allow navigation if there's a current Pokemon loaded and it's not the first one
       if (this.currentId > 1) {
         this.cargarPokemon(this.currentId - 1);
       }
     },
     searchPokemon(filtro) {
-      if (filtro) {
-        this.cargarPokemon(filtro);
+      if (filtro && filtro.trim()) {
+        // Activar la visualización del PokedexInfo con animación
+        this.showPokemonInfo = true;
+        
+        // Usar nextTick para asegurar que el elemento esté en el DOM
+        this.$nextTick(() => {
+          // Delay adicional para asegurar que los componentes estén completamente listos
+          setTimeout(() => {
+            this.pokemonInfoVisible = true;
+            // Llamar cargarPokemon después de que los componentes estén listos
+            this.cargarPokemon(filtro.trim());
+          }, 150);
+        });
       } else {
         this.mostrarToast('Error', 'Por favor ingrese un nombre, ID o tipo de Pokémon', 'bg-warning');
       }
@@ -283,17 +434,27 @@ export default {
     this.historial = JSON.parse(localStorage.getItem('historial')) || [];
     this.favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
     
-    // Update child components with data
+    // Wait for all child components to be mounted and ready
     this.$nextTick(() => {
-      this.$refs.pokedexMenus.updateHistorial(this.historial);
-      this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+      // Double check that refs exist before calling methods
+      if (this.$refs.pokedexMenus) {
+        this.$refs.pokedexMenus.updateHistorial(this.historial);
+        this.$refs.pokedexMenus.updateFavoritos(this.favoritos);
+      }
+      
+      // Load Pokemon after a short delay to ensure everything is ready
+      setTimeout(() => {
+        // Initialize Pokedex in blank state - don't auto-load any Pokemon
+        // The user should search or select a Pokemon manually
+        
+        // Optional: Clear any previous Pokemon data to ensure clean start
+        localStorage.removeItem('currentPokemon');
+        
+        // Set currentId to 0 to indicate no Pokemon selected
+        this.currentId = 0;
+        this.pokemonData = null;
+      }, 100);
     });
-    
-    // Try to load the last Pokemon
-    const lastPokemon = JSON.parse(localStorage.getItem('currentPokemon'));
-    if (lastPokemon) {
-      this.cargarPokemon(lastPokemon.id);
-    }
   },
   beforeUnmount() {
     // Cleanup when component is destroyed
@@ -518,6 +679,39 @@ export default {
 /* Global Font Size Class */
 :global(.large-font) {
   font-size: 1.2em !important;
+}
+
+/* Animación de apertura del Pokédex Info */
+.pokedex-info-expanding {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top center;
+}
+
+.pokedex-info-expanding.info-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Animación adicional para simular apertura de Pokédex */
+@keyframes pokedexOpen {
+  0% {
+    opacity: 0;
+    transform: perspective(600px) rotateX(-15deg) translateY(20px) scale(0.9);
+  }
+  50% {
+    opacity: 0.7;
+    transform: perspective(600px) rotateX(-5deg) translateY(10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(600px) rotateX(0deg) translateY(0) scale(1);
+  }
+}
+
+.info-visible {
+  animation: pokedexOpen 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @media (max-width: 768px) {

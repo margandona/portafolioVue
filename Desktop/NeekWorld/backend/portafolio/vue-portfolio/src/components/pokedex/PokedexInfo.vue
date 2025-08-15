@@ -1,5 +1,267 @@
 <template>
-  <div ref="pokemonInfo" class="pokedex__info"></div>
+  <div class="pokedex__info">
+    <!-- Vista principal: Menú de botones (solo se muestra después de una búsqueda) -->
+    <div v-if="currentView === 'menu' && currentPokemon" class="info-menu">
+      <div class="pokemon-header">
+        <h2><i class="fas fa-search"></i> {{ capitalizarNombre(currentPokemon.name) }}</h2>
+        <p class="pokemon-subtitle">Selecciona una categoría para ver más información</p>
+      </div>
+      
+      <div class="menu-buttons">
+        <button 
+          class="btn btn-secondary btn-menu" 
+          @click="changeView('basic')"
+        >
+          <i class="fas fa-info-circle"></i> Información Básica
+        </button>
+        
+        <button 
+          class="btn btn-secondary btn-menu" 
+          @click="changeView('stats')"
+        >
+          <i class="fas fa-chart-bar"></i> Estadísticas
+        </button>
+        
+        <button 
+          class="btn btn-secondary btn-menu" 
+          @click="changeView('species')"
+        >
+          <i class="fas fa-dna"></i> Información de Especie
+        </button>
+        
+        <button 
+          class="btn btn-secondary btn-menu" 
+          @click="changeView('evolution')"
+        >
+          <i class="fas fa-exchange-alt"></i> Cadena Evolutiva
+        </button>
+        
+        <button 
+          class="btn btn-secondary btn-menu" 
+          @click="changeView('games')"
+        >
+          <i class="fas fa-gamepad"></i> Información de Juegos
+        </button>
+        
+        <button 
+          class="btn btn-secondary btn-menu" 
+          @click="changeView('moves')"
+        >
+          <i class="fas fa-fist-raised"></i> Movimientos
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista inicial: Sin búsqueda realizada -->
+    <div v-if="!currentPokemon && !isLoading && !hasError" class="initial-state">
+      <div class="initial-content">
+        <i class="fas fa-search initial-icon"></i>
+        <h3>¡Busca un Pokémon!</h3>
+        <p>Utiliza el campo de búsqueda para encontrar información detallada sobre cualquier Pokémon.</p>
+      </div>
+    </div>
+
+    <!-- Vista de carga -->
+    <div v-if="isLoading" class="loading-state">
+      <div class="loading-content">
+        <div class="pokeball-spinner"></div>
+        <h3>Buscando Pokémon...</h3>
+        <p>Analizando la información del Pokédex...</p>
+      </div>
+    </div>
+
+    <!-- Vista de error -->
+    <div v-if="hasError" class="error-state">
+      <div class="error-content">
+        <i class="fas fa-exclamation-triangle error-icon"></i>
+        <h3>Pokémon no encontrado</h3>
+        <p>Verifica el nombre o número del Pokémon e intenta nuevamente.</p>
+      </div>
+    </div>
+
+    <!-- Vista de Información Básica -->
+    <div v-if="currentView === 'basic'" class="info-content">
+      <button class="btn btn-primary btn-back" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      
+      <div class="basic-info-content" v-if="currentPokemon">
+        <h3><i class="fas fa-info-circle"></i> Información Básica de {{ capitalizarNombre(currentPokemon.name) }}</h3>
+        
+        <div class="basic-info-grid">
+          <div class="info-item">
+            <span class="info-label"><i class="fas fa-ruler-vertical"></i> Altura:</span>
+            <span class="info-value">{{ (currentPokemon.height / 10).toFixed(1) }} m</span>
+          </div>
+          
+          <div class="info-item">
+            <span class="info-label"><i class="fas fa-weight"></i> Peso:</span>
+            <span class="info-value">{{ (currentPokemon.weight / 10).toFixed(1) }} kg</span>
+          </div>
+          
+          <div class="info-item">
+            <span class="info-label"><i class="fas fa-tags"></i> Tipos:</span>
+            <div class="types-container">
+              <span v-for="type in currentPokemon.types" :key="type.type.name" 
+                    :class="type.type.name" class="type-badge">
+                {{ capitalizarNombre(type.type.name) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <span class="info-label"><i class="fas fa-star"></i> Habilidades:</span>
+            <div class="abilities-container">
+              <div v-for="ability in currentPokemon.abilities" :key="ability.ability.name" class="ability-item">
+                {{ capitalizarNombre(ability.ability.name) }}
+                <span v-if="ability.is_hidden" class="hidden-ability">(Oculta)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary btn-back btn-back-bottom" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+
+    <!-- Vista de Estadísticas -->
+    <div v-if="currentView === 'stats'" class="info-content">
+      <button class="btn btn-primary btn-back" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      
+      <div class="stats-content" v-if="currentPokemon">
+        <h3><i class="fas fa-chart-bar"></i> Estadísticas de {{ capitalizarNombre(currentPokemon.name) }}</h3>
+        <div class="stats-grid">
+          <div class="stat-item" v-for="stat in currentPokemon.stats" :key="stat.stat.name">
+            <span class="stat-name">{{ formatStatName(stat.stat.name) }}</span>
+            <div class="stat-bar-container">
+              <div class="stat-bar" :style="{ width: (stat.base_stat / 255 * 100) + '%' }"></div>
+              <span class="stat-value">{{ stat.base_stat }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary btn-back btn-back-bottom" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+
+    <!-- Vista de Información de Especie -->
+    <div v-if="currentView === 'species'" class="info-content">
+      <button class="btn btn-primary btn-back" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      
+      <div class="species-content" v-if="pokemonSpeciesData">
+        <h3><i class="fas fa-dna"></i> Información de Especie</h3>
+        <div class="species-info">
+          <div class="info-section" v-if="pokemonSpeciesData.flavor_text_entries">
+            <h4>Descripción</h4>
+            <p class="description">{{ getFlavorText() }}</p>
+          </div>
+          <div class="info-section">
+            <h4>Datos de Especie</h4>
+            <p><strong>Color:</strong> {{ capitalizarNombre(pokemonSpeciesData.color?.name || 'No disponible') }}</p>
+            <p><strong>Hábitat:</strong> {{ capitalizarNombre(pokemonSpeciesData.habitat?.name || 'No disponible') }}</p>
+            <p><strong>Felicidad Base:</strong> {{ pokemonSpeciesData.base_happiness || 'No disponible' }}</p>
+            <p><strong>Tasa de Captura:</strong> {{ pokemonSpeciesData.capture_rate || 'No disponible' }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary btn-back btn-back-bottom" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+
+    <!-- Vista de Cadena Evolutiva -->
+    <div v-if="currentView === 'evolution'" class="info-content">
+      <button class="btn btn-primary btn-back" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      
+      <div class="evolution-content" v-if="evolutionChainData">
+        <h3><i class="fas fa-exchange-alt"></i> Cadena Evolutiva</h3>
+        <div class="evolution-chain">
+          <div class="evolution-step" v-for="evolution in evolutionChainData" :key="evolution.name">
+            <div class="evolution-pokemon">
+              <img :src="evolution.sprite" :alt="evolution.name" class="evolution-image">
+              <h4>{{ capitalizarNombre(evolution.name) }}</h4>
+              <p v-if="evolution.level" class="evolution-trigger">Nivel {{ evolution.level }}</p>
+              <p v-if="evolution.method && evolution.method !== 'level-up'" class="evolution-trigger">{{ evolution.method }}</p>
+            </div>
+            <div v-if="evolution.next" class="evolution-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary btn-back btn-back-bottom" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+
+    <!-- Vista de Información de Juegos -->
+    <div v-if="currentView === 'games'" class="info-content">
+      <button class="btn btn-primary btn-back" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      
+      <div class="games-content" v-if="currentPokemon">
+        <h3><i class="fas fa-gamepad"></i> Información de Juegos</h3>
+        <div class="games-info">
+          <div class="info-section">
+            <h4>Experiencia y Crecimiento</h4>
+            <p><strong>Experiencia Base:</strong> {{ currentPokemon.base_experience || 'No disponible' }}</p>
+            <p v-if="pokemonSpeciesData?.egg_groups"><strong>Grupo de Huevo:</strong> 
+              {{ pokemonSpeciesData.egg_groups.map(group => capitalizarNombre(group.name)).join(', ') }}
+            </p>
+            <p v-if="pokemonSpeciesData?.hatch_counter"><strong>Pasos para Eclosionar:</strong> 
+              {{ pokemonSpeciesData.hatch_counter * 255 }} pasos
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary btn-back btn-back-bottom" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+
+    <!-- Vista de Movimientos -->
+    <div v-if="currentView === 'moves'" class="info-content">
+      <button class="btn btn-primary btn-back" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      
+      <div class="moves-content" v-if="currentPokemon?.moves">
+        <h3><i class="fas fa-fist-raised"></i> Movimientos de {{ capitalizarNombre(currentPokemon.name) }}</h3>
+        <div class="moves-counter">
+          <span class="badge bg-info">{{ currentPokemon.moves.length }} movimientos disponibles</span>
+        </div>
+        <div class="moves-list">
+          <div class="moves-grid">
+            <div v-for="move in currentPokemon.moves.slice(0, 20)" :key="move.move.name" class="move-item">
+              <span class="move-name">{{ capitalizarNombre(move.move.name) }}</span>
+              <span class="move-level">Nivel: {{ move.version_group_details[0]?.level_learned_at || 'N/A' }}</span>
+            </div>
+          </div>
+          <p v-if="currentPokemon.moves.length > 20" class="moves-note">
+            Mostrando los primeros 20 de {{ currentPokemon.moves.length }} movimientos
+          </p>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary btn-back btn-back-bottom" @click="changeView('menu')">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -7,92 +269,167 @@ export default {
   name: 'PokedexInfo',
   data() {
     return {
-      mostrarMovimientos: false
+      currentView: null, // null (sin búsqueda), 'menu', 'basic', 'stats', 'species', 'evolution', 'games', 'moves'
+      currentPokemon: null,
+      pokemonSpeciesData: null,
+      evolutionChainData: null,
+      isLoading: false,
+      hasError: false
     };
   },
   methods: {
-    showPokemon(pokemon) {
-      const tipos = pokemon.types.map(t => `<li class="pokedex__types-item ${t.type.name}">${t.type.name}</li>`).join('');
-      const stats = pokemon.stats.map(s => `<li><strong>${s.stat.name}:</strong> ${s.base_stat}</li>`).join('');
-      const abilities = pokemon.abilities.map(a => `<li>${a.ability.name} (${a.is_hidden ? 'Oculta' : 'Visible'})</li>`).join('');
-      const moves = pokemon.moves.map(m => `<li>${m.move.name} (Nivel: ${m.version_group_details[0]?.level_learned_at || 'N/A'})</li>`).join('');
+    async showPokemon(pokemon) {
+      this.currentPokemon = pokemon;
+      this.currentView = 'menu';
+      this.isLoading = false;
+      this.hasError = false;
       
-      this.$refs.pokemonInfo.innerHTML = `
-        <div class="pokedex__pokemon">
-          <h3 class="pokedex__nombre-pokemon">${this.capitalizarNombre(pokemon.name)}</h3>
-          <div class="pokedex__details">
-            <div class="pokedex__info-col">
-              <div class="pokedex__info-item">
-                <h3>Altura:</h3>
-                <p>${pokemon.height} dm</p>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Peso:</h3>
-                <p>${pokemon.weight} hg</p>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Experiencia base:</h3>
-                <p>${pokemon.base_experience}</p>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Tipos:</h3>
-                <ul class="pokedex__types">${tipos}</ul>
-              </div>
-            </div>
-            <div class="pokedex__info-col">
-              <div class="pokedex__info-item">
-                <h3>Estadísticas:</h3>
-                <ul class="pokedex__stats">${stats}</ul>
-              </div>
-              <div class="pokedex__info-item">
-                <h3>Habilidades:</h3>
-                <ul class="pokedex__abilities">${abilities}</ul>
-              </div>
-              <div class="pokedex__info-item">
-                <button class="btn btn-info" id="toggle-moves">
-                  <i class="fas fa-list"></i> Ver Movimientos
-                </button>
-                <ul class="pokedex__moves" style="display: none;">${moves}</ul>
-              </div>
-              <div class="pokedex__info-item">
-                <button class="btn btn-warning" onclick="window.pokedexVue.guardarFavorito(${pokemon.id})">
-                  <i class="fas fa-star"></i> Agregar a Favoritos
-                </button>
-                <button class="btn btn-danger" onclick="window.pokedexVue.borrarFavorito(${pokemon.id})">
-                  <i class="fas fa-trash"></i> Borrar de Favoritos
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
+      // Limpiar datos anteriores
+      this.pokemonSpeciesData = null;
+      this.evolutionChainData = null;
+    },
+    
+    changeView(view) {
+      this.currentView = view;
+      
+      // Cargar datos específicos cuando se necesiten
+      if (view === 'species' && !this.pokemonSpeciesData) {
+        this.fetchSpeciesData();
+      } else if (view === 'evolution' && !this.evolutionChainData) {
+        this.fetchEvolutionData();
+      }
+    },
 
-      // Attach event listener after DOM has been updated
-      this.$nextTick(() => {
-        const toggleMovesBtn = document.getElementById('toggle-moves');
-        if (toggleMovesBtn) {
-          toggleMovesBtn.addEventListener('click', () => {
-            this.mostrarMovimientos = !this.mostrarMovimientos;
-            const movesElement = document.querySelector('.pokedex__moves');
-            if (movesElement) {
-              movesElement.style.display = this.mostrarMovimientos ? 'block' : 'none';
-              toggleMovesBtn.textContent = this.mostrarMovimientos ? 'Ocultar Movimientos' : 'Ver Movimientos';
-            }
-          });
+    async fetchSpeciesData() {
+      if (!this.currentPokemon) return;
+      
+      try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${this.currentPokemon.id}/`);
+        this.pokemonSpeciesData = await response.json();
+      } catch (error) {
+        console.error('Error fetching species data:', error);
+      }
+    },
+
+    async fetchEvolutionData() {
+      if (!this.currentPokemon) return;
+      
+      try {
+        // Primero obtener la especie si no la tenemos
+        if (!this.pokemonSpeciesData) {
+          await this.fetchSpeciesData();
         }
-      });
+        
+        if (this.pokemonSpeciesData?.evolution_chain?.url) {
+          const response = await fetch(this.pokemonSpeciesData.evolution_chain.url);
+          const evolutionChain = await response.json();
+          this.evolutionChainData = await this.parseEvolutionChain(evolutionChain.chain);
+        }
+      } catch (error) {
+        console.error('Error fetching evolution data:', error);
+      }
     },
-    setLoading() {
-      this.$refs.pokemonInfo.innerHTML = '<div class="pokedex__loading">Cargando...</div>';
+
+    async parseEvolutionChain(chain) {
+      const evolutionData = [];
+      
+      const addEvolution = async (pokemon, level = null, method = null) => {
+        try {
+          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.species.name}/`);
+          const pokemonData = await response.json();
+          
+          evolutionData.push({
+            name: pokemon.species.name,
+            sprite: pokemonData.sprites.front_default,
+            level: level,
+            method: method,
+            next: pokemon.evolves_to.length > 0
+          });
+        } catch (error) {
+          console.error('Error fetching evolution pokemon:', error);
+        }
+      };
+
+      // Pokémon base
+      await addEvolution(chain);
+
+      // Evoluciones
+      for (const evolution of chain.evolves_to) {
+        const evoDetail = evolution.evolution_details[0];
+        const level = evoDetail?.min_level;
+        const method = evoDetail?.trigger?.name;
+        
+        await addEvolution(evolution, level, method);
+
+        // Tercera evolución
+        for (const thirdEvolution of evolution.evolves_to) {
+          const thirdEvoDetail = thirdEvolution.evolution_details[0];
+          const thirdLevel = thirdEvoDetail?.min_level;
+          const thirdMethod = thirdEvoDetail?.trigger?.name;
+          
+          await addEvolution(thirdEvolution, thirdLevel, thirdMethod);
+        }
+      }
+
+      return evolutionData;
     },
-    setError() {
-      this.$refs.pokemonInfo.innerHTML = '<div class="pokedex__error">Pokémon no encontrado</div>';
+
+    getFlavorText() {
+      if (!this.pokemonSpeciesData?.flavor_text_entries) return 'No hay descripción disponible';
+      
+      // Buscar texto en español
+      const spanishText = this.pokemonSpeciesData.flavor_text_entries.find(
+        entry => entry.language.name === 'es'
+      );
+      
+      if (spanishText) return spanishText.flavor_text.replace(/\f/g, ' ');
+      
+      // Si no hay español, buscar en inglés
+      const englishText = this.pokemonSpeciesData.flavor_text_entries.find(
+        entry => entry.language.name === 'en'
+      );
+      
+      return englishText ? englishText.flavor_text.replace(/\f/g, ' ') : 'No hay descripción disponible';
     },
-    clearInfo() {
-      this.$refs.pokemonInfo.innerHTML = '';
+
+    formatStatName(statName) {
+      const statNames = {
+        'hp': 'HP',
+        'attack': 'Ataque',
+        'defense': 'Defensa',
+        'special-attack': 'Ataque Especial',
+        'special-defense': 'Defensa Especial',
+        'speed': 'Velocidad'
+      };
+      return statNames[statName] || this.capitalizarNombre(statName);
     },
+
     capitalizarNombre(nombre) {
       return nombre.charAt(0).toUpperCase() + nombre.slice(1);
+    },
+
+    // Métodos para compatibilidad con PokedexModal
+    setLoading() {
+      this.isLoading = true;
+      this.hasError = false;
+      this.currentView = null;
+      this.currentPokemon = null;
+    },
+
+    setError() {
+      this.isLoading = false;
+      this.hasError = true;
+      this.currentView = null;
+      this.currentPokemon = null;
+    },
+
+    clearInfo() {
+      this.currentView = null;
+      this.currentPokemon = null;
+      this.pokemonSpeciesData = null;
+      this.evolutionChainData = null;
+      this.isLoading = false;
+      this.hasError = false;
     }
   }
 };
@@ -100,101 +437,586 @@ export default {
 
 <style scoped>
 .pokedex__info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
-  transition: all 0.5s ease;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: white;
+  min-height: 400px;
 }
 
-.pokedex__loading {
-  font-size: 1.2em;
-  color: #000;
-}
-
-.pokedex__pokemon {
+/* Estilos del menú principal */
+.info-menu {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  background-color: #fff;
-  color: #000;
-  border: 2px solid #000;
+  gap: 15px;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.btn-menu {
+  width: 100%;
+  padding: 15px 20px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border: none;
   border-radius: 10px;
-  width: 100%;
-  padding: 10px;
-  transition: transform 0.3s;
-}
-
-.pokedex__nombre-pokemon {
-  text-align: center;
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.pokedex__details {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  transition: all 0.3s ease;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  width: 100%;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.pokedex__info-col {
+.btn-menu:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.btn-menu i {
+  font-size: 1.2em;
+}
+
+/* Header del Pokémon en el menú */
+.pokemon-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.pokemon-header h2 {
+  font-size: 1.8em;
+  margin-bottom: 8px;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pokemon-subtitle {
+  color: #f0f0f0;
+  font-size: 1em;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Vista inicial sin búsqueda */
+.initial-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.initial-content {
+  text-align: center;
+  max-width: 300px;
+}
+
+.initial-icon {
+  font-size: 4em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 20px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+
+.initial-content h3 {
+  font-size: 1.8em;
+  margin-bottom: 15px;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.initial-content p {
+  color: #f0f0f0;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* Estilos de contenido de vistas */
+.info-content {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.btn-back {
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back-bottom {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+/* Información básica */
+.basic-info-content h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.basic-info-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.info-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #f0f0f0;
+}
+
+.info-value {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #fff;
+}
+
+.types-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.type-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.abilities-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  width: 48%;
+  gap: 8px;
 }
 
-.pokedex__info-item {
+.ability-item {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.hidden-ability {
+  font-style: italic;
+  color: #ffd700;
+  margin-left: 5px;
+}
+
+/* Estadísticas */
+.stats-content h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stats-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.stat-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-name {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #f0f0f0;
+}
+
+.stat-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.stat-bar {
+  height: 20px;
+  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #fff;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Especies */
+.species-content h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.species-info {
+  display: grid;
+  gap: 20px;
+}
+
+.info-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-section h4 {
+  margin-bottom: 15px;
+  color: #f0f0f0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 8px;
+}
+
+.description {
+  line-height: 1.6;
+  font-size: 1.1em;
+  text-align: justify;
+}
+
+/* Evoluciones */
+.evolution-content h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.evolution-chain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.evolution-step {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.evolution-pokemon {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.evolution-image {
+  width: 80px;
+  height: 80px;
   margin-bottom: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px;
 }
 
-.pokedex__types,
-.pokedex__stats,
-.pokedex__abilities,
-.pokedex__moves {
-  list-style: none;
-  padding: 0;
+.evolution-pokemon h4 {
+  margin-bottom: 5px;
+  color: #f0f0f0;
+}
+
+.evolution-trigger {
+  font-size: 0.9em;
+  color: #ffd700;
   margin: 0;
 }
 
-.pokedex__types li {
-  display: inline-block;
-  background-color: #ddd;
-  border-radius: 5px;
-  padding: 2px 5px;
-  margin-right: 5px;
+.evolution-arrow {
+  color: #ffd700;
+  font-size: 1.5em;
 }
 
-.pokedex__moves {
-  max-height: 150px;
+/* Juegos */
+.games-content h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Movimientos */
+.moves-content h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.moves-counter {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.badge {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.moves-grid {
+  display: grid;
+  gap: 10px;
+  max-height: 300px;
   overflow-y: auto;
+  padding-right: 10px;
 }
 
-.pokedex__error {
-  color: #ff0000;
-  margin-top: 10px;
+.move-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* Types colors */
-:deep(.normal) { background-color: #A8A878; color: #fff; }
-:deep(.fire) { background-color: #F08030; color: #fff; }
-:deep(.water) { background-color: #6890F0; color: #fff; }
-:deep(.electric) { background-color: #F8D030; color: #000; }
-:deep(.grass) { background-color: #78C850; color: #fff; }
-:deep(.ice) { background-color: #98D8D8; color: #000; }
-:deep(.fighting) { background-color: #C03028; color: #fff; }
-:deep(.poison) { background-color: #A040A0; color: #fff; }
-:deep(.ground) { background-color: #E0C068; color: #000; }
-:deep(.flying) { background-color: #A890F0; color: #fff; }
-:deep(.psychic) { background-color: #F85888; color: #fff; }
-:deep(.bug) { background-color: #A8B820; color: #fff; }
-:deep(.rock) { background-color: #B8A038; color: #fff; }
-:deep(.ghost) { background-color: #705898; color: #fff; }
-:deep(.dragon) { background-color: #7038F8; color: #fff; }
-:deep(.dark) { background-color: #705848; color: #fff; }
-:deep(.steel) { background-color: #B8B8D0; color: #000; }
-:deep(.fairy) { background-color: #EE99AC; color: #000; }
+.move-name {
+  font-weight: 600;
+  color: #f0f0f0;
+}
+
+.move-level {
+  font-size: 0.9em;
+  color: #ffd700;
+}
+
+.moves-note {
+  text-align: center;
+  margin-top: 15px;
+  font-style: italic;
+  color: #f0f0f0;
+}
+
+/* Colores de tipos Pokémon */
+.normal { background: linear-gradient(135deg, #A8A878, #C6C684); }
+.fire { background: linear-gradient(135deg, #F08030, #FF9F5F); }
+.water { background: linear-gradient(135deg, #6890F0, #8FA8FF); }
+.electric { background: linear-gradient(135deg, #F8D030, #FFE066); color: #333; }
+.grass { background: linear-gradient(135deg, #78C850, #A0DB71); }
+.ice { background: linear-gradient(135deg, #98D8D8, #BCE8E8); color: #333; }
+.fighting { background: linear-gradient(135deg, #C03028, #D05850); }
+.poison { background: linear-gradient(135deg, #A040A0, #C768C7); }
+.ground { background: linear-gradient(135deg, #E0C068, #EDD294); color: #333; }
+.flying { background: linear-gradient(135deg, #A890F0, #C7B0FF); }
+.psychic { background: linear-gradient(135deg, #F85888, #FF7FA7); }
+.bug { background: linear-gradient(135deg, #A8B820, #C6D16E); }
+.rock { background: linear-gradient(135deg, #B8A038, #D1C166); }
+.ghost { background: linear-gradient(135deg, #705898, #9183C7); }
+.dragon { background: linear-gradient(135deg, #7038F8, #A27DFA); }
+.dark { background: linear-gradient(135deg, #705848, #A08A7A); }
+.steel { background: linear-gradient(135deg, #B8B8D0, #D6D6ED); color: #333; }
+.fairy { background: linear-gradient(135deg, #EE99AC, #F4B7C7); color: #333; }
+
+/* Responsive */
+@media (min-width: 768px) {
+  .basic-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .species-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .moves-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .evolution-chain {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .pokedex__info {
+    padding: 15px;
+  }
+  
+  .btn-menu {
+    padding: 12px 15px;
+    font-size: 1em;
+  }
+  
+  .basic-info-content h3,
+  .stats-content h3,
+  .species-content h3,
+  .evolution-content h3,
+  .games-content h3,
+  .moves-content h3 {
+    font-size: 1.3em;
+  }
+}
+
+/* Scrollbar personalizada */
+.moves-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.moves-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.moves-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border-radius: 10px;
+}
+
+.moves-grid::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Estados de carga y error */
+.loading-state,
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.loading-content,
+.error-content {
+  text-align: center;
+  max-width: 300px;
+}
+
+.pokeball-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 4em;
+  color: #ff6b6b;
+  margin-bottom: 20px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.loading-content h3,
+.error-content h3 {
+  font-size: 1.8em;
+  margin-bottom: 15px;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.loading-content p,
+.error-content p {
+  color: #f0f0f0;
+  line-height: 1.6;
+  opacity: 0.9;
+}
 </style>
