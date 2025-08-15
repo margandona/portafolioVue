@@ -120,14 +120,11 @@ export default {
   },
   methods: {
     showReflection(reflectionKey) {
-      console.log('Attempting to show reflection:', reflectionKey);
-      
       // 1. Set in Vuex for reactivity
       this.$store.dispatch('modals/showEducationReflection', reflectionKey);
       
       // 2. Access the modal directly through parent component (more reliable)
       if (this.$parent && this.$parent.$refs.educationModal) {
-        console.log('Found educationModal reference, calling direct method');
         this.$parent.$refs.educationModal.showDirectReflection(reflectionKey);
       } else {
         console.warn('Could not find educationModal reference, falling back to jQuery');
@@ -161,24 +158,20 @@ export default {
     },
     
     openFigmaPrototype() {
-      console.log('Attempting to open Figma prototype modal');
       this.isLoading = true;
       
       // Try multiple approaches to show the modal
       if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
         // Use Bootstrap's modal function if available
-        console.log('Using Bootstrap modal function');
         window.jQuery('#figmaPrototypeModal').modal('show');
       } else if (window.jQuery) {
         // Fallback: Try to use jQuery to show the modal manually
-        console.log('Fallback: Using jQuery to show modal manually');
         window.jQuery('#figmaPrototypeModal').addClass('show');
         window.jQuery('#figmaPrototypeModal').css('display', 'block');
         window.jQuery('body').addClass('modal-open');
         window.jQuery('body').append('<div class="modal-backdrop fade show"></div>');
       } else {
         // Fallback: Use vanilla JavaScript
-        console.log('Fallback: Using vanilla JavaScript to show modal');
         const modal = document.getElementById('figmaPrototypeModal');
         if (modal) {
           modal.classList.add('show');
@@ -202,15 +195,12 @@ export default {
     }
   },
   mounted() {
-    console.log('EducationSection mounted');
-    // Initialize modals with debugging
+    // Initialize modals
     if (window.jQuery) {
-      console.log('jQuery is available in mounted - initializing Figma modal');
       try {
         window.jQuery('#figmaPrototypeModal').modal({
           show: false
         });
-        console.log('Figma modal initialized successfully');
       } catch (error) {
         console.error('Error initializing Figma modal:', error);
       }

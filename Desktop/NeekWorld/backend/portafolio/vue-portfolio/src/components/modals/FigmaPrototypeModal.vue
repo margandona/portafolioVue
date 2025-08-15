@@ -40,18 +40,14 @@ export default {
   },
   methods: {
     hideLoader() {
-      console.log('Iframe loaded, hiding loader');
       // Add a small delay to ensure the iframe is fully rendered
       setTimeout(() => {
         this.isLoading = false;
-        console.log('Loader hidden');
       }, 500);
     },
     showModal() {
-      console.log('showModal method called');
       this.isLoading = true;
       if (window.jQuery) {
-        console.log('jQuery found, showing modal');
         try {
           window.jQuery('#figmaPrototypeModal').modal('show');
           console.log('Modal show command executed');

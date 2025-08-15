@@ -322,9 +322,6 @@ export default {
         }
       }
       
-      console.log(`Total de sprites encontrados para ${pokemon.name}:`, sprites.length);
-      console.log('Lista de sprites:', sprites.map(s => s.name));
-      
       this.pokemonSprites = sprites;
       this.currentImageIndex = 0;
       this.startAutoSlide();
