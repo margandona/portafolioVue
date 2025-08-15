@@ -74,7 +74,6 @@ export default {
       'isDyslexiaFriendlyMode'
     ]),
     visible() {
-      console.log('RadioModal visible computed property called:', this.isRadioModalVisible);
       return this.isRadioModalVisible;
     },
     accessibilityClasses() {
@@ -92,17 +91,14 @@ export default {
     }
   },
   created() {
-    console.log('RadioModal component created, store:', this.$store);
     // Check if the modals module is registered correctly
     try {
-      const hasModalsModule = this.$store && this.$store._modules.root._children.modals;
-      console.log('Modals module exists:', !!hasModalsModule);
+      this.$store && this.$store._modules.root._children.modals;
     } catch (error) {
       console.error('Error checking modals module:', error);
     }
   },
   mounted() {
-    console.log('RadioModal mounted, visibility:', this.visible);
     try {
       this.audio = new Audio('https://s57.radiolize.com/radio/8090/radio.mp3');
       this.audio.volume = this.lastVolume;

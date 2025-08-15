@@ -137,7 +137,6 @@ export default {
     },
     navigateAndCloseMenu(sectionId) {
       if (sectionId === 'radio') {
-        console.log('Radio button clicked, dispatching showRadioModal action');
         try {
           this.$store.dispatch('modals/showRadioModal');
         } catch (error) {
@@ -152,7 +151,6 @@ export default {
     navigateTo(sectionId) {
       // If it's Radio, show the modal instead of navigating
       if (sectionId === 'radio') {
-        console.log('Radio option selected, trying to show modal');
         try {
           this.$store.dispatch('modals/showRadioModal');
         } catch (error) {

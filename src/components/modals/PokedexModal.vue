@@ -134,7 +134,6 @@ export default {
       if (!this.$refs.pokedexInfo || !this.$refs.pokedexScreen) {
         // If components aren't ready, retry up to 10 times with increasing delays
         if (retryCount < 10) {
-          console.warn('Pokedex components not ready yet, retrying...', retryCount + 1);
           setTimeout(() => {
             this.cargarPokemon(id, retryCount + 1);
           }, 100 + (retryCount * 50)); // Increasing delay: 100ms, 150ms, 200ms, etc.
