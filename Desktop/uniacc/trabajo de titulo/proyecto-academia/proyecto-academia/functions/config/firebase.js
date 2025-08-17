@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./academy.json');
+const serviceAccount = require('./academy-bd619-firebase-adminsdk-sqh3j-fcca0a0223.json');
 
 try {
   admin.initializeApp({

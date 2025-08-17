@@ -2,7 +2,7 @@
   <div class="navbar-brand">
     <router-link to="/" class="logo">
       <img src="@/assets/logo.png" alt="Academia Logo" class="logo-img">
-      <span class="logo-text">NeeWorld</span>
+      <span class="logo-text">NeekWorld</span>
     </router-link>
   </div>
 </template>

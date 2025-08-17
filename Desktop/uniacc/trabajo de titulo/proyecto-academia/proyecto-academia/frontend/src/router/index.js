@@ -92,6 +92,55 @@ const routes = [
     component: PlaceholderView,
     meta: { requiresAuth: true }
   },
+  // Rutas de pago y checkout
+  {
+    path: '/courses/:id/checkout',
+    name: 'Checkout',
+    component: () => import('../views/CheckoutView.vue'),
+    meta: { requiresAuth: true, roles: ['student'] },
+    props: route => ({ courseId: route.params.id })
+  },
+  {
+    path: '/payment/success',
+    name: 'PaymentSuccess',
+    component: () => import('../views/PaymentSuccessView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/payment/cancel',
+    name: 'PaymentCancel',
+    component: PlaceholderView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/payment/error',
+    name: 'PaymentError',
+    component: PlaceholderView,
+    meta: { requiresAuth: true }
+  },
+  
+  // Transbank Routes
+  {
+    path: '/payment/transbank/return',
+    name: 'TransbankReturn',
+    component: () => import('@/views/TransbankReturnView.vue'),
+    meta: { requiresAuth: true }
+  },
+  
+  // Stripe Routes
+  {
+    path: '/payment/stripe/checkout',
+    name: 'StripeCheckout',
+    component: () => import('@/views/StripeCheckoutView.vue'),
+    meta: { requiresAuth: true }
+  },
+  
+  {
+    path: '/payment/stripe/success',
+    name: 'StripeSuccess',
+    component: () => import('@/views/PaymentSuccessView.vue'),
+    meta: { requiresAuth: true }
+  },
   // Certificados - usando componente placeholder
   {
     path: '/certificates',
@@ -124,6 +173,12 @@ const routes = [
     path: '/moodle-courses',
     name: 'MoodleCourses',
     component: () => import('../views/MoodleCoursesView.vue')
+  },
+  // Contact route
+  {
+    path: '/contact',
+    name: 'Contact',
+    component: () => import('../views/ContactView.vue')
   }
 ];
 

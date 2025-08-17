@@ -432,19 +432,26 @@
         
         try {
           if (this.course.isFree) {
+            // Inscripción gratuita directa
             await this.enrollInCourse(this.courseId);
-            this.$router.push(`/courses/${this.courseId}/content`);
-          } else {
-            // Iniciar proceso de compra
-            const result = await this.initiatePurchase(this.courseId);
             
-            // Redirigir a la página de pago o procesar según la respuesta
-            if (result && result.paymentUrl) {
-              window.location.href = result.paymentUrl;
-            }
+            // Mostrar mensaje de éxito
+            this.$toast?.success('¡Te has inscrito exitosamente al curso!');
+            
+            // Recargar datos del curso para actualizar el estado
+            await this.fetchCourseData();
+            
+          } else {
+            // Redirigir a checkout para cursos pagos
+            this.$router.push(`/courses/${this.courseId}/checkout`);
           }
         } catch (error) {
           console.error('Error al inscribirse:', error);
+          
+          // Mostrar mensaje de error
+          const errorMessage = error.response?.data?.message || error.message || 'Error al procesar la inscripción';
+          this.$toast?.error(errorMessage);
+          
         } finally {
           this.enrolling = false;
         }

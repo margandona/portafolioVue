@@ -1,0 +1,412 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Contact Messages API",
+  "dateExported": "2023-11-20T12:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Contact Messages",
+      "id": "contact-messages-folder",
+      "description": "Operaciones de mensajes de contacto"
+    },
+    {
+      "name": "Admin Operations",
+      "id": "admin-operations-folder",
+      "description": "Operaciones administrativas para mensajes de contacto"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Submit Contact Message",
+      "id": "submit-contact-message",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Usuario Prueba\",\n  \"email\": \"usuario@example.com\",\n  \"subject\": \"Consulta de prueba\",\n  \"message\": \"Este es un mensaje de prueba para verificar el funcionamiento del formulario de contacto.\",\n  \"privacyAccepted\": true,\n  \"submittedAt\": \"2023-11-20T12:00:00.000Z\",\n  \"sourceUrl\": \"https://example.com/contact\",\n  \"referrer\": \"https://example.com\",\n  \"metadata\": {\n    \"browserInfo\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\",\n    \"screenResolution\": \"1920x1080\",\n    \"deviceType\": \"desktop\",\n    \"language\": \"es-ES\"\n  }\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        },
+        {
+          "type": "json-query",
+          "custom": "json.messageId",
+          "action": "exists"
+        },
+        {
+          "type": "set-env-var",
+          "custom": "json.messageId",
+          "action": "setto",
+          "value": "message_id"
+        }
+      ]
+    },
+    {
+      "name": "Submit Invalid Contact Message",
+      "id": "submit-invalid-contact-message",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Usuario Prueba\",\n  \"email\": \"correo_invalido\",\n  \"subject\": \"Consulta de prueba\",\n  \"message\": \"Este es un mensaje de prueba para verificar la validación del formulario.\",\n  \"privacyAccepted\": false\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "400"
+        }
+      ]
+    },
+    {
+      "name": "Submit Message with Attachment",
+      "id": "submit-contact-message-with-attachment",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/with-attachment",
+      "method": "POST",
+      "headers": [],
+      "body": {
+        "type": "formdata",
+        "raw": [],
+        "form": [
+          {
+            "name": "name",
+            "value": "Usuario Prueba"
+          },
+          {
+            "name": "email",
+            "value": "usuario@example.com"
+          },
+          {
+            "name": "subject",
+            "value": "Consulta con adjunto"
+          },
+          {
+            "name": "message",
+            "value": "Este es un mensaje de prueba con un archivo adjunto."
+          },
+          {
+            "name": "privacyAccepted",
+            "value": "true"
+          }
+        ],
+        "files": [
+          {
+            "name": "attachment",
+            "value": "test-file.pdf"
+          }
+        ]
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "201"
+        }
+      ]
+    },
+    {
+      "name": "Admin Login",
+      "id": "admin-login-for-messages",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/auth/login",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        },
+        {
+          "type": "json-query",
+          "custom": "json.token",
+          "action": "exists"
+        },
+        {
+          "type": "set-env-var",
+          "custom": "json.token",
+          "action": "setto",
+          "value": "admin_token"
+        }
+      ]
+    },
+    {
+      "name": "Get All Messages (Admin)",
+      "id": "get-all-messages",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Get Messages with Filters (Admin)",
+      "id": "get-filtered-messages",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "status",
+          "value": "unread"
+        },
+        {
+          "name": "fromDate",
+          "value": "2023-11-01"
+        },
+        {
+          "name": "toDate",
+          "value": "2023-11-30"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Get Message By ID (Admin)",
+      "id": "get-message-by-id",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/{{message_id}}",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        },
+        {
+          "type": "json-query",
+          "custom": "json.messageId",
+          "action": "equal",
+          "value": "{{message_id}}"
+        }
+      ]
+    },
+    {
+      "name": "Update Message Status (Admin)",
+      "id": "update-message-status",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/{{message_id}}/status",
+      "method": "PATCH",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"status\": \"read\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Reply to Message (Admin)",
+      "id": "reply-to-message",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/{{message_id}}/reply",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"replyContent\": \"Gracias por contactarnos. Este es un mensaje de respuesta a su consulta.\",\n  \"replySubject\": \"Re: Consulta de prueba\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Delete Message (Admin)",
+      "id": "delete-message",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/{{message_id}}",
+      "method": "DELETE",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Get Message Statistics (Admin)",
+      "id": "get-message-statistics",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/statistics",
+      "method": "GET",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        }
+      ],
+      "params": [
+        {
+          "name": "fromDate",
+          "value": "2023-11-01"
+        },
+        {
+          "name": "toDate",
+          "value": "2023-11-30"
+        }
+      ],
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Bulk Update Message Status (Admin)",
+      "id": "bulk-update-message-status",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/bulk/status",
+      "method": "PATCH",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"messageIds\": [\"{{message_id}}\", \"other_message_id\"],\n  \"status\": \"archived\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "name": "Export Messages (Admin)",
+      "id": "export-messages",
+      "url": "https://us-central1-casiangelesydemonios.cloudfunctions.net/api/contact/messages/export",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{admin_token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"format\": \"csv\",\n  \"fromDate\": \"2023-11-01\",\n  \"toDate\": \"2023-11-30\",\n  \"status\": \"all\"\n}"
+      },
+      "tests": [
+        {
+          "type": "res-code",
+          "custom": "",
+          "action": "equal",
+          "value": "200"
+        },
+        {
+          "type": "res-header",
+          "custom": "content-type",
+          "action": "contains",
+          "value": "text/csv"
+        }
+      ]
+    }
+  ]
+}

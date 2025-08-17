@@ -1,154 +1,134 @@
 const axios = require('axios');
-const functions = require('firebase-functions');
+const dotenv = require('dotenv');
 
-// Get token from environment variables for security
-const MOODLE_URL = 'https://neekworld.cl/NW/';
-const MOODLE_TOKEN = functions.config().moodle?.token || '0c9a56f911419b833d7f71eb58317d3e';
+// Load environment variables
+dotenv.config();
 
-// Create axios instance for Moodle API calls
-const moodleApi = axios.create({
-  baseURL: MOODLE_URL + 'webservice/rest/server.php',
-  params: {
-    wstoken: MOODLE_TOKEN,
-    moodlewsrestformat: 'json'
+const MOODLE_URL = process.env.MOODLE_URL || 'https://moodle.example.com';
+const MOODLE_TOKEN = process.env.MOODLE_TOKEN;
+
+class MoodleService {
+  constructor() {
+    this.apiUrl = `${MOODLE_URL}/webservice/rest/server.php`;
+    this.token = MOODLE_TOKEN;
   }
-});
 
-// Service methods to interact with Moodle
-const moodleService = {
-  /**
-   * Get all courses from Moodle
-   */
-  getCourses: async () => {
+  // Helper method to make API calls to Moodle
+  async callMoodleApi(wsfunction, params = {}) {
     try {
-      const response = await moodleApi.get('', {
+      if (!this.token) {
+        throw new Error('Moodle API token not configured');
+      }
+
+      const response = await axios.get(this.apiUrl, {
         params: {
-          wsfunction: 'core_course_get_courses'
+          wstoken: this.token,
+          wsfunction,
+          moodlewsrestformat: 'json',
+          ...params
         }
       });
-      
-      // Handle Moodle API errors
+
+      // Check for Moodle API exceptions
       if (response.data && response.data.exception) {
-        throw new Error(`Moodle API error: ${response.data.message}`);
+        throw new Error(`Moodle API Error: ${response.data.message}`);
       }
-      
+
       return response.data;
+    } catch (error) {
+      console.error(`Error calling Moodle API (${wsfunction}):`, error);
+      throw error;
+    }
+  }
+
+  // Get all courses
+  async getCourses() {
+    try {
+      const data = await this.callMoodleApi('core_course_get_courses');
+      return data || [];
     } catch (error) {
       console.error('Error fetching courses from Moodle:', error);
       throw error;
     }
-  },
-  
-  /**
-   * Get course by ID from Moodle
-   */
-  getCourseById: async (courseId) => {
+  }
+
+  // Get a specific course by ID
+  async getCourse(id) {
     try {
-      const response = await moodleApi.get('', {
-        params: {
-          wsfunction: 'core_course_get_courses',
-          options: JSON.stringify({ ids: [courseId] })
-        }
+      const data = await this.callMoodleApi('core_course_get_courses', {
+        options: { ids: [id] }
       });
-      
-      // Handle Moodle API errors
-      if (response.data && response.data.exception) {
-        throw new Error(`Moodle API error: ${response.data.message}`);
-      }
-      
-      if (!response.data || response.data.length === 0) {
-        throw new Error('Course not found');
-      }
-      
-      return response.data[0];
+      return data && data.length > 0 ? data[0] : null;
     } catch (error) {
-      console.error(`Error fetching course ${courseId} from Moodle:`, error);
+      console.error(`Error fetching course ${id} from Moodle:`, error);
       throw error;
     }
-  },
-  
-  /**
-   * Get course categories from Moodle
-   */
-  getCategories: async () => {
+  }
+
+  // Get enrolled users for a course
+  async getEnrolledUsers(courseId) {
     try {
-      const response = await moodleApi.get('', {
-        params: {
-          wsfunction: 'core_course_get_categories'
-        }
+      const data = await this.callMoodleApi('core_enrol_get_enrolled_users', {
+        courseid: courseId
       });
-      
-      // Handle Moodle API errors
-      if (response.data && response.data.exception) {
-        throw new Error(`Moodle API error: ${response.data.message}`);
-      }
-      
-      return response.data;
+      return data || [];
     } catch (error) {
-      console.error('Error fetching categories from Moodle:', error);
+      console.error(`Error fetching enrolled users for course ${courseId}:`, error);
       throw error;
     }
-  },
-  
-  /**
-   * Get enrolled users in a course
-   */
-  getCourseEnrollments: async (courseId) => {
+  }
+
+  // Enroll a user in a course
+  async enrollUser(userId, courseId, roleId = 5) { // 5 is the default role ID for students
     try {
-      const response = await moodleApi.get('', {
-        params: {
-          wsfunction: 'core_enrol_get_enrolled_users',
-          courseid: courseId
-        }
+      const data = await this.callMoodleApi('enrol_manual_enrol_users', {
+        enrolments: [
+          {
+            roleid: roleId,
+            userid: userId,
+            courseid: courseId
+          }
+        ]
       });
-      
-      // Handle Moodle API errors
-      if (response.data && response.data.exception) {
-        throw new Error(`Moodle API error: ${response.data.message}`);
-      }
-      
-      return response.data;
+      return data;
     } catch (error) {
-      console.error(`Error fetching enrollments for course ${courseId} from Moodle:`, error);
+      console.error(`Error enrolling user ${userId} in course ${courseId}:`, error);
       throw error;
     }
-  },
-  
-  /**
-   * Test connection to Moodle API
-   */
-  testConnection: async () => {
+  }
+
+  // Get course contents
+  async getCourseContents(courseId) {
     try {
-      const response = await moodleApi.get('', {
-        params: {
-          wsfunction: 'core_webservice_get_site_info'
-        }
+      const data = await this.callMoodleApi('core_course_get_contents', {
+        courseid: courseId
       });
+      return data || [];
+    } catch (error) {
+      console.error(`Error fetching course contents for ${courseId}:`, error);
+      throw error;
+    }
+  }
+
+  // Sync course data from Moodle to our database
+  async syncCoursesToDatabase() {
+    try {
+      const courses = await this.getCourses();
+      console.log(`Found ${courses.length} courses in Moodle`);
       
-      if (response.data && response.data.exception) {
-        return {
-          success: false,
-          message: `Moodle API error: ${response.data.message}`,
-          details: response.data
-        };
-      }
+      // Here you would typically update your database
+      // This is a placeholder - actual implementation would depend on your database setup
       
       return {
         success: true,
-        siteName: response.data.sitename,
-        version: response.data.release,
-        userName: response.data.username,
-        functions: response.data.functions?.map(f => f.name) || []
+        count: courses.length,
+        message: `Successfully synced ${courses.length} courses from Moodle`
       };
     } catch (error) {
-      console.error('Error testing connection to Moodle:', error);
-      return {
-        success: false,
-        message: error.message,
-        details: error.response?.data || error
-      };
+      console.error('Error syncing courses from Moodle:', error);
+      throw error;
     }
   }
-};
+}
 
-module.exports = moodleService;
+module.exports = new MoodleService();

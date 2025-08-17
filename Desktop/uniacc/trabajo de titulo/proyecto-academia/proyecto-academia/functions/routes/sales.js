@@ -5,6 +5,8 @@ const {
   listSales,
   updateSaleStatus,
   processPayment,
+  confirmPayment,
+  refundPayment,
   getSalesStats,
   handlePaymentWebhook
 } = require('../controllers/saleController');
@@ -56,6 +58,20 @@ router.patch('/:saleId/status', verifyToken, updateSaleStatus);
  * @access Privado (solo el comprador o admin)
  */
 router.post('/:saleId/process-payment', verifyToken, processPayment);
+
+/**
+ * @route POST /api/sales/:saleId/confirm
+ * @desc Confirmar un pago y crear inscripción
+ * @access Privado (solo el comprador o admin)
+ */
+router.post('/:saleId/confirm', verifyToken, confirmPayment);
+
+/**
+ * @route POST /api/sales/:saleId/refund
+ * @desc Procesar reembolso de una venta
+ * @access Privado (solo administradores)
+ */
+router.post('/:saleId/refund', verifyToken, checkRole(['admin']), refundPayment);
 
 /**
  * @route POST /api/sales/webhook

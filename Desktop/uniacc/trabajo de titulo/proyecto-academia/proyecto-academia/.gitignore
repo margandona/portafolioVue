@@ -8,6 +8,7 @@ node_modules/
 /backend/src/config/firebase-adminsdk.json
 /backend/src/config/academy.json
 /functions/config/academy.json
+/functions/config/*firebase-adminsdk*.json
 /functions/.env
 /functions/.runtimeconfig.json
 /.firebase/

@@ -2,6 +2,30 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import axios from 'axios'
+
+// Configurar Axios para pagos
+const apiBaseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:3000'
+axios.defaults.baseURL = apiBaseURL
+
+// Interceptor para logging (desarrollo)
+if (process.env.NODE_ENV === 'development') {
+  axios.interceptors.request.use(request => {
+    console.log('🌐 API Request:', request.method?.toUpperCase(), request.url, request.data)
+    return request
+  })
+  
+  axios.interceptors.response.use(
+    response => {
+      console.log('✅ API Response:', response.status, response.data)
+      return response
+    },
+    error => {
+      console.error('❌ API Error:', error.response?.status, error.response?.data || error.message)
+      return Promise.reject(error)
+    }
+  )
+}
 
 // Vuetify
 import 'vuetify/styles'
@@ -38,6 +62,9 @@ const vuetify = createVuetify({
 
 // Create and mount app with plugins
 const app = createApp(App)
+
+// Configurar axios como propiedad global
+app.config.globalProperties.$http = axios
 
 // Use plugins
 app.use(store)

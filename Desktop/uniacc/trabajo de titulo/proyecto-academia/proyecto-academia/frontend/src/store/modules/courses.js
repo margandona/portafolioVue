@@ -322,6 +322,57 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+
+  // Procesar pago de un curso
+  async processPayment({ commit }, { saleId, paymentData }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
+    
+    try {
+      const response = await courseService.processPayment(saleId, paymentData);
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.message || error.message || 'Error al procesar el pago');
+      console.error('Error al procesar pago:', error);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  // Confirmar pago de un curso
+  async confirmPayment({ commit }, { saleId, confirmationData }) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
+    
+    try {
+      const response = await courseService.confirmPayment(saleId, confirmationData);
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.message || error.message || 'Error al confirmar el pago');
+      console.error('Error al confirmar pago:', error);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  // Obtener información de una venta
+  async getSale({ commit }, saleId) {
+    commit('SET_LOADING', true);
+    commit('SET_ERROR', null);
+    
+    try {
+      const response = await courseService.getSale(saleId);
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.message || error.message || 'Error al obtener información de la venta');
+      console.error('Error al obtener venta:', error);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
   
   // Aplicar descuento a un curso
   async applyCourseDiscount({ commit }, { courseId, discountData }) {

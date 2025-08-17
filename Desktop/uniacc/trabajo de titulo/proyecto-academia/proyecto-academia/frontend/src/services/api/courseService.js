@@ -125,7 +125,40 @@ export default {
    * @param {string} courseId - ID del curso
    */
   initiatePurchase(courseId) {
-    return api.post(`/courses/${courseId}/purchase`);
+    return api.post(`/sales`, { courseId });
+  },
+
+  /**
+   * Procesar pago de una venta
+   * @param {string} saleId - ID de la venta
+   * @param {Object} paymentData - Datos del pago
+   */
+  processPayment(saleId, paymentData) {
+    return api.post(`/sales/${saleId}/process-payment`, paymentData);
+  },
+
+  /**
+   * Confirmar pago de una venta
+   * @param {string} saleId - ID de la venta
+   * @param {Object} confirmationData - Datos de confirmación
+   */
+  confirmPayment(saleId, confirmationData) {
+    return api.post(`/sales/${saleId}/confirm`, confirmationData);
+  },
+
+  /**
+   * Obtener información de una venta
+   * @param {string} saleId - ID de la venta
+   */
+  getSale(saleId) {
+    return api.get(`/sales/${saleId}`);
+  },
+
+  /**
+   * Obtener ventas del usuario
+   */
+  getUserSales() {
+    return api.get('/sales');
   },
 
   /**

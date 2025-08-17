@@ -1,6 +1,7 @@
 const SaleModel = require('../models/saleModel');
 const CourseModel = require('../models/courseModel');
 const EnrollmentModel = require('../models/enrollmentModel');
+const paymentService = require('../services/paymentService');
 const admin = require('../config/firebase');
 const db = admin.firestore();
 
@@ -241,14 +242,12 @@ const processPayment = async (req, res) => {
   try {
     const { saleId } = req.params;
     const { 
-      paymentId, 
-      paymentMethod, 
-      transactionDetails 
+      paymentMethod = 'credit_card',
+      cardData,
+      billingAddress,
+      amount,
+      returnUrl
     } = req.body;
-    
-    if (!paymentId) {
-      return res.status(400).json({ message: 'ID de pago requerido' });
-    }
     
     // Verificar que la venta existe
     const sale = await SaleModel.findById(saleId);
@@ -275,48 +274,69 @@ const processPayment = async (req, res) => {
       });
     }
     
-    // Preparar detalles del pago
-    const paymentDetails = {
-      paymentId,
-      paymentMethod: paymentMethod || 'external',
-      processedAt: new Date().toISOString(),
-      ...transactionDetails
+    // Preparar datos del pago
+    const paymentData = {
+      saleId,
+      paymentMethod,
+      amount: amount || sale.totalAmount,
+      currency: 'CLP',
+      cardData,
+      billingAddress,
+      returnUrl: returnUrl || `${process.env.FRONTEND_URL}/payment/success?sale_id=${saleId}`
     };
     
     // Cambiar a estado "processing"
-    const processing = await SaleModel.updateStatus(
+    await SaleModel.updateStatus(
       saleId,
       SaleModel.STATUS.PROCESSING,
-      'Procesando pago externo',
-      paymentDetails
+      'Procesando pago...'
     );
     
-    // Aquí se podría integrar con un servicio de pagos real
-    // Por ahora, simulamos un pago exitoso
+    // Procesar pago usando el servicio
+    const paymentResult = await paymentService.processPayment(paymentData);
     
-    // Marcar como pagado
-    const paid = await SaleModel.updateStatus(
-      saleId,
-      SaleModel.STATUS.PAID,
-      'Pago recibido correctamente'
-    );
+    if (paymentResult.success) {
+      // Si el pago fue exitoso y no requiere redirección
+      if (!paymentResult.redirectUrl) {
+        // Confirmar pago y crear inscripción
+        const confirmResult = await paymentService.confirmPaymentAndEnroll(saleId);
+        
+        res.status(200).json({
+          message: 'Pago procesado exitosamente',
+          sale: confirmResult.enrollment,
+          transactionId: paymentResult.transactionId,
+          success: true
+        });
+      } else {
+        // Si requiere redirección (ej: Transbank, PayPal)
+        res.status(200).json({
+          message: paymentResult.message,
+          redirectUrl: paymentResult.redirectUrl,
+          transactionId: paymentResult.transactionId || paymentResult.token,
+          success: true,
+          requiresRedirect: true
+        });
+      }
+    } else {
+      throw new Error(paymentResult.message || 'Error en el procesamiento del pago');
+    }
     
-    // Completar la venta (esto activará la matrícula automática)
-    const completed = await SaleModel.updateStatus(
-      saleId,
-      SaleModel.STATUS.COMPLETED,
-      'Venta completada y curso habilitado'
-    );
-    
-    res.status(200).json({
-      message: 'Pago procesado exitosamente',
-      sale: completed
-    });
   } catch (error) {
     console.error('Error al procesar pago:', error);
+    
+    // Update sale status to failed if we have saleId
+    if (req.params.saleId) {
+      await SaleModel.updateStatus(
+        req.params.saleId,
+        SaleModel.STATUS.FAILED,
+        `Error: ${error.message}`
+      );
+    }
+    
     res.status(500).json({ 
       message: 'Error al procesar el pago', 
-      details: error.message 
+      details: error.message,
+      success: false
     });
   }
 };
@@ -365,87 +385,104 @@ const getSalesStats = async (req, res) => {
 };
 
 /**
- * Integración con webhook de proveedor de pagos 
- * (para futuras integraciones con sistemas externos)
+ * Confirmar pago y crear inscripción
  */
-const handlePaymentWebhook = async (req, res) => {
+const confirmPayment = async (req, res) => {
   try {
-    const { 
-      event_type, 
-      transaction_id, 
-      payment_id, 
-      reference_id,  // Este sería el ID de la venta
-      status, 
-      amount,
-      metadata 
-    } = req.body;
+    const { saleId } = req.params;
+    const { transactionId, paymentMethod } = req.body;
     
-    console.log('Webhook de pago recibido:', event_type, reference_id);
-
-    // Verificar firma del webhook (implementación específica para cada proveedor)
-    // const isValid = verifyWebhookSignature(req);
-    // if (!isValid) {
-    //   return res.status(401).json({ message: 'Firma inválida' });
-    // }
-
-    // Validar que la venta existe
-    const saleId = reference_id;
+    // Verificar que la venta existe
     const sale = await SaleModel.findById(saleId);
     
     if (!sale) {
-      console.error('Webhook: Venta no encontrada', saleId);
       return res.status(404).json({ message: 'Venta no encontrada' });
     }
-
-    // Manejar diferentes tipos de eventos
-    switch (event_type) {
-      case 'payment.created':
-        await SaleModel.updateStatus(
-          saleId,
-          SaleModel.STATUS.PROCESSING,
-          `Pago iniciado vía webhook: ${payment_id}`,
-          { paymentId: payment_id, transactionId: transaction_id }
-        );
-        break;
-        
-      case 'payment.succeeded':
-      case 'payment.completed':
-        await SaleModel.updateStatus(
-          saleId,
-          SaleModel.STATUS.PAID,
-          `Pago confirmado vía webhook: ${payment_id}`
-        );
-        
-        // Completar la venta y crear inscripción automáticamente
-        await SaleModel.updateStatus(
-          saleId,
-          SaleModel.STATUS.COMPLETED,
-          `Inscripción habilitada automáticamente`
-        );
-        break;
-        
-      case 'payment.failed':
-        await SaleModel.updateStatus(
-          saleId,
-          SaleModel.STATUS.FAILED,
-          `Pago fallido vía webhook: ${payment_id}`
-        );
-        break;
-        
-      case 'payment.refunded':
-        await SaleModel.updateStatus(
-          saleId,
-          SaleModel.STATUS.REFUNDED,
-          `Reembolso procesado vía webhook: ${payment_id}`
-        );
-        break;
-        
-      default:
-        console.log(`Tipo de evento no manejado: ${event_type}`);
+    
+    // Solo el comprador o un admin pueden confirmar el pago
+    const isOwner = sale.userId === req.user.uid;
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ 
+        message: 'No tienes permiso para confirmar este pago' 
+      });
     }
+    
+    // Confirmar pago usando el servicio
+    const result = await paymentService.confirmPaymentAndEnroll(saleId);
+    
+    res.status(200).json({
+      message: 'Pago confirmado exitosamente',
+      enrollment: result.enrollment,
+      success: true
+    });
+    
+  } catch (error) {
+    console.error('Error al confirmar pago:', error);
+    res.status(500).json({ 
+      message: 'Error al confirmar el pago', 
+      details: error.message,
+      success: false
+    });
+  }
+};
 
+/**
+ * Procesar reembolso
+ */
+const refundPayment = async (req, res) => {
+  try {
+    const { saleId } = req.params;
+    const { reason } = req.body;
+    
+    // Solo administradores pueden procesar reembolsos
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        message: 'Solo administradores pueden procesar reembolsos' 
+      });
+    }
+    
+    // Procesar reembolso usando el servicio
+    const result = await paymentService.refundPayment(saleId, reason);
+    
+    res.status(200).json({
+      message: 'Reembolso procesado exitosamente',
+      refundId: result.refundId,
+      success: true
+    });
+    
+  } catch (error) {
+    console.error('Error al procesar reembolso:', error);
+    res.status(500).json({ 
+      message: 'Error al procesar el reembolso', 
+      details: error.message,
+      success: false
+    });
+  }
+};
+/**
+ * Integración con webhook de proveedor de pagos 
+ */
+const handlePaymentWebhook = async (req, res) => {
+  try {
+    const provider = req.query.provider || 'generic';
+    
+    console.log('Webhook recibido de proveedor:', provider);
+    console.log('Datos del webhook:', req.body);
+    
+    // Procesar webhook usando el servicio de pagos
+    const result = await paymentService.processWebhook(req.body, provider);
+    
+    console.log('Resultado del webhook:', result);
+    
     // Responder al proveedor de pagos
-    res.status(200).json({ received: true });
+    res.status(200).json({ 
+      received: true, 
+      status: result.status,
+      message: 'Webhook procesado exitosamente'
+    });
+    
   } catch (error) {
     console.error('Error en webhook de pagos:', error);
     res.status(500).json({ 
@@ -477,6 +514,8 @@ module.exports = {
   listSales,
   updateSaleStatus,
   processPayment,
+  confirmPayment,
+  refundPayment,
   getSalesStats,
   handlePaymentWebhook
 };

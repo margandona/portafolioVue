@@ -5,7 +5,7 @@
     </button>
     <div class="nav-dropdown-menu" v-if="isOpen">
       
-      <a href="https://neekworld.cl/NW/course/index.php" target="_blank" rel="noopener noreferrer" class="dropdown-item">
+      <a href="https://neekworld.cl/NW/" target="_blank" rel="noopener noreferrer" class="dropdown-item">
         Ir a Moodle <i class="fas fa-external-link-alt external-icon"></i>
       </a>
       <a href="https://neekworld.cl/NW/login/index.php" target="_blank" rel="noopener noreferrer" class="dropdown-item">
