@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'https://us-central1-casiangelesydemonios.cloudfunctions.net/api',
+  baseURL: process.env.VUE_APP_API_URL || 'https://us-central1-academy-bd619.cloudfunctions.net/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

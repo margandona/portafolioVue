@@ -141,6 +141,22 @@ const routes = [
     component: () => import('@/views/PaymentSuccessView.vue'),
     meta: { requiresAuth: true }
   },
+  
+  // Khipu Routes
+  {
+    path: '/payment/khipu/return',
+    name: 'KhipuReturn',
+    component: () => import('@/views/KhipuReturnView.vue'),
+    meta: { requiresAuth: true }
+  },
+  
+  {
+    path: '/payment/khipu/cancel',
+    name: 'KhipuCancel',
+    component: () => import('@/views/PaymentCancelView.vue'),
+    meta: { requiresAuth: true }
+  },
+  
   // Certificados - usando componente placeholder
   {
     path: '/certificates',
@@ -148,6 +164,29 @@ const routes = [
     component: PlaceholderView,
     meta: { requiresAuth: true }
   },
+
+  // Rutas de evaluaciones
+  {
+    path: '/evaluations/:id/take',
+    name: 'ExamInterface',
+    component: () => import('../views/ExamInterfaceView.vue'),
+    meta: { requiresAuth: true, roles: ['student'] },
+    props: true
+  },
+  {
+    path: '/evaluations/results/:responseId',
+    name: 'ExamResults',
+    component: () => import('../views/ExamResultsView.vue'),
+    meta: { requiresAuth: true },
+    props: true
+  },
+  {
+    path: '/evaluations/reports',
+    name: 'EvaluationReports',
+    component: () => import('../views/EvaluationReportsView.vue'),
+    meta: { requiresAuth: true, roles: ['instructor', 'admin'] }
+  },
+
   // Configuración de cuenta - usando componente placeholder
   {
     path: '/account',

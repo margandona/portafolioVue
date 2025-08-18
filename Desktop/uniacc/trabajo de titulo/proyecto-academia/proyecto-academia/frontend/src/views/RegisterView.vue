@@ -62,7 +62,7 @@
             {{ formErrors.password }}
           </div>
           <div class="password-hint">
-            La contraseña debe tener al menos 6 caracteres e incluir una mayúscula, un número y un carácter especial.
+            La contraseña debe tener al menos 8 caracteres e incluir una mayúscula, una minúscula, un número y un símbolo especial.
           </div>
         </div>
 
@@ -82,6 +82,23 @@
           </div>
           <div v-if="formErrors.confirmPassword" class="invalid-feedback">
             {{ formErrors.confirmPassword }}
+          </div>
+        </div>
+
+        <!-- Rol del Usuario -->
+        <div class="form-group">
+          <label for="role">Tipo de Usuario</label>
+          <select
+            id="role"
+            class="form-control"
+            v-model="form.role"
+            required
+          >
+            <option value="student">Estudiante</option>
+            <option value="teacher">Profesor</option>
+          </select>
+          <div class="role-hint">
+            Selecciona el tipo de cuenta que necesitas
           </div>
         </div>
 
@@ -120,6 +137,7 @@ export default {
         email: "",
         password: "",
         confirmPassword: "",
+        role: "student"
       },
       formErrors: {
         name: "",
@@ -167,8 +185,11 @@ export default {
       if (!this.form.password) {
         this.formErrors.password = "La contraseña es obligatoria";
         isValid = false;
-      } else if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/.test(this.form.password)) {
-        this.formErrors.password = "La contraseña debe cumplir los requisitos de seguridad";
+      } else if (this.form.password.length < 8) {
+        this.formErrors.password = "La contraseña debe tener al menos 8 caracteres";
+        isValid = false;
+      } else if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]+$/.test(this.form.password)) {
+        this.formErrors.password = "La contraseña debe incluir mayúsculas, minúsculas, números y símbolos especiales";
         isValid = false;
       }
       
@@ -190,19 +211,25 @@ export default {
       
       this.errorMessage = "";
       
+      const userData = {
+        name: this.form.name,
+        email: this.form.email,
+        password: this.form.password,
+        confirmPassword: this.form.confirmPassword,
+        role: this.form.role
+      };
+      
+      console.log('📝 Datos a enviar al backend:', userData);
+      
       try {
         // Call to Vuex action
-        await this.register({
-          name: this.form.name,
-          email: this.form.email,
-          password: this.form.password,
-          confirmPassword: this.form.confirmPassword
-        });
+        await this.register(userData);
         
         // Redirect to dashboard on success
         this.$router.push('/dashboard');
       } catch (error) {
         console.error("Error en el registro:", error);
+        console.error("Error response:", error.response);
         this.errorMessage = this.getError || "Error al registrarse. Inténtalo nuevamente.";
       }
     },
@@ -339,6 +366,13 @@ label {
   background-color: #f8d7da;
   color: #dc3545;
   border: 1px solid #f5c6cb;
+}
+
+.role-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  font-style: italic;
 }
 
 .links {

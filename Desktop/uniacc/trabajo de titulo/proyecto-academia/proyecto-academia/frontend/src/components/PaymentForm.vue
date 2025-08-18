@@ -229,6 +229,50 @@
         </div>
       </div>
 
+      <!-- Khipu Form -->
+      <div v-else-if="selectedPaymentMethod === 'khipu'">
+        <div class="text-center py-8">
+          <v-icon color="green" size="64" class="mb-4">mdi-bank-transfer</v-icon>
+          <h3 class="text-h6 mb-4">Transferencia Bancaria con Khipu</h3>
+          <p class="text-body-1 mb-4">
+            Paga directamente desde tu cuenta bancaria sin necesidad de tarjeta.
+            Proceso 100% seguro y confirmación inmediata.
+          </p>
+          
+          <v-alert type="success" variant="tonal" class="mb-4">
+            <div class="text-body-2">
+              <strong>✅ Ventajas:</strong>
+              <br>• Sin comisiones adicionales
+              <br>• Más seguro (sin exposición de datos)
+              <br>• Todos los bancos chilenos
+              <br>• Confirmación inmediata
+            </div>
+          </v-alert>
+
+          <div class="banks-info mb-4">
+            <p class="text-body-2 text-medium-emphasis">
+              <strong>Bancos compatibles:</strong>
+              BCI, Santander, Chile, Estado, Scotiabank, Itaú, Security, Falabella
+            </p>
+          </div>
+          
+          <v-btn
+            color="green"
+            size="large"
+            @click="processKhipuPayment"
+            :loading="loading"
+            class="mb-2"
+          >
+            <v-icon start>mdi-bank-transfer</v-icon>
+            Pagar con Transferencia - ${{ totalAmount.toLocaleString() }} CLP
+          </v-btn>
+
+          <p class="text-caption text-medium-emphasis">
+            Serás redirigido a tu banco para completar la transferencia
+          </p>
+        </div>
+      </div>
+
       <!-- Transbank Form -->
       <div v-else-if="selectedPaymentMethod === 'transbank'">
         <div class="text-center py-8">
@@ -336,6 +380,14 @@ export default {
       
       // Payment methods available
       paymentMethods: [
+        {
+          id: 'khipu',
+          name: 'Transferencia Bancaria',
+          icon: 'mdi-bank-transfer',
+          color: 'green',
+          enabled: true,
+          description: 'Pago directo desde tu banco (BCI, Santander, Chile, etc.)'
+        },
         {
           id: 'transbank',
           name: 'Transbank (Chile)',
@@ -534,6 +586,57 @@ export default {
         
         this.$emit('payment-error', { 
           message: error.message || 'Error procesando el pago con Transbank' 
+        });
+      } finally {
+        this.$emit('payment-processing', false);
+      }
+    },
+
+    async processKhipuPayment() {
+      this.$emit('payment-processing', true);
+      
+      try {
+        console.log('🏦 Iniciando pago con Khipu...');
+        
+        // Crear venta si no existe
+        const saleResult = await this.initiatePurchase(this.course.id);
+        const saleId = saleResult.saleId;
+        
+        console.log('📋 Sale ID obtenido:', saleId);
+        
+        // Crear pago con Khipu
+        const response = await this.$http.post('/api/payments/khipu/create', {
+          saleId: saleId,
+          amount: this.totalAmount,
+          courseTitle: this.course.title
+        });
+        
+        if (response.data.success) {
+          console.log('✅ Pago Khipu creado:', response.data);
+          
+          // Guardar información para el retorno
+          sessionStorage.setItem('khipuPayment', JSON.stringify({
+            saleId: saleId,
+            courseId: this.course.id,
+            amount: this.totalAmount,
+            courseTitle: this.course.title,
+            paymentId: response.data.paymentId
+          }));
+          
+          console.log('🔄 Redirigiendo a Khipu...');
+          
+          // Redirigir a Khipu para completar el pago
+          window.location.href = response.data.paymentUrl;
+          
+        } else {
+          throw new Error(response.data.message || 'Error creando pago con Khipu');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error en pago Khipu:', error);
+        
+        this.$emit('payment-error', { 
+          message: error.response?.data?.message || error.message || 'Error procesando el pago con Khipu' 
         });
       } finally {
         this.$emit('payment-processing', false);
